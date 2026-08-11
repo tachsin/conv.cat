@@ -1,0 +1,13 @@
+[package]
+name = "conv-core"
+description = "Framework-free, browser-free conversion engine for conv.cat."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+name = "conv_core"
+
+[dependencies]
