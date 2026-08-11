@@ -12,5 +12,10 @@ This crate is framework-free and browser-free by rule, not by accident:
 - The only crate allowed to expose this to JS/WASM is `crates/conv-wasm`, via wasm-bindgen
   bindings that wrap this crate's plain Rust API.
 
-This is currently a scaffold: no converters exist yet. See the backlog for the format-by-format
-porting tickets (units, images, text/data, CAD, ...).
+The foundation is in place: the `Converter` trait, the `Format`/`Category` registry, the typed
+`ConvertError` enum, the `convert`/`convert_with` dispatch entry points, and a progress/
+cancellation hook (`ConvertOptions`/`ProgressSink`) — see `src/lib.rs`'s rustdoc for the tour, and
+[`docs/adding-a-format.md`](../../docs/adding-a-format.md) for a full worked example. No real
+converters exist yet beyond a placeholder identity conversion used to exercise the pipeline in
+tests — see the backlog for the format-by-format porting tickets (units, images, text/data, CAD,
+...) that add real ones.

@@ -16,13 +16,12 @@ Video and audio are the one exception: they go through ffmpeg-wasm in `packages/
 [`docs/ARCHITECTURE.md` § The media boundary](ARCHITECTURE.md#the-media-boundary-video-and-audio-stay-on-ffmpeg-wasm)
 instead — wrapping ffmpeg in Rust is explicitly out of scope and that PR will be closed.
 
-> **A note on timing.** As of this writing, `crates/conv-core` is still a scaffold: the
-> `Converter` trait and format registry described below are specified in the "conv-core
-> foundation" backlog ticket and may not exist in your checkout yet. Once it lands, the trait's
-> rustdoc is the source of truth if anything here has drifted — please send a docs PR to fix the
-> drift rather than working around it silently. The shape below is not a guess; it's the actual
-> spec that ticket is built against, kept here so the first contributors have something concrete
-> to build with.
+> **A note on timing.** The `Converter` trait and format registry described below have landed
+> (backlog ticket "conv-core foundation") — `crates/conv-core/src/converter.rs`'s rustdoc on
+> `Converter` is the authoritative version if anything here has drifted; please send a docs PR to
+> fix the drift rather than working around it silently. No real format converters exist yet —
+> only a placeholder identity conversion used to exercise the pipeline in tests — so this doc's
+> QOI walkthrough is still the best template for the first real one.
 
 ## Worked example: adding QOI encoding to the image category
 
@@ -36,15 +35,19 @@ Conversion code is organized by category under `crates/conv-core/src/formats/`:
 
 ```
 crates/conv-core/src/
-├─ lib.rs
-├─ registry.rs           # the Format enum + the dispatch table
-├─ error.rs               # ConvertError
+├─ lib.rs                # crate docs, the `convert`/`convert_with` entry points, default registry
+├─ converter.rs          # the `Converter` trait — start here
+├─ registry.rs           # the `Format`/`Category` enums + the `Registry` dispatch table
+├─ options.rs            # `ConvertOptions`
+├─ progress.rs           # `ProgressSink`, the progress/cancellation hook
+├─ error.rs              # `ConvertError`
 └─ formats/
    ├─ mod.rs
-   ├─ units/
-   ├─ text/
-   ├─ cad/
-   └─ image/
+   ├─ identity.rs         # placeholder passthrough converter — not a real format, ignore it
+   ├─ units/              # ← doesn't exist yet; you add it for your category
+   ├─ text/                # ← doesn't exist yet; you add it for your category
+   ├─ cad/                 # ← doesn't exist yet; you add it for your category
+   └─ image/               # ← doesn't exist yet; you add it for your category
       ├─ mod.rs
       ├─ png.rs
       ├─ bmp.rs
@@ -58,11 +61,12 @@ one obviously exists).
 
 ### Step 2 — Implement the `Converter` trait
 
-Every converter implements one trait, defined in `crates/conv-core`:
+Every converter implements one trait, defined in `crates/conv-core/src/converter.rs` (its rustdoc
+is the authoritative version — this is a summary):
 
 ```rust
-// crates/conv-core/src/lib.rs (trait shape — see its rustdoc for the authoritative version)
-pub trait Converter {
+// crates/conv-core/src/converter.rs
+pub trait Converter: Send + Sync {
     fn convert(
         &self,
         input: &[u8],
@@ -104,8 +108,8 @@ fn encode_qoi(image: &RawImage) -> Vec<u8> {
 }
 ```
 
-Two rules that the conv-core foundation ticket calls out explicitly, because they're easy to get
-wrong on the first pass:
+Rules the `Converter` rustdoc calls out explicitly, because they're easy to get wrong on the
+first pass:
 
 - **No `unwrap()`/`expect()`/`panic!()` reachable from `input`.** These converters run on
   untrusted bytes; a panic here is a denial-of-service, not a crash you can shrug off. Return
@@ -114,13 +118,23 @@ wrong on the first pass:
 - **No `wasm-bindgen`, `web-sys`, or `js-sys` in `crates/conv-core`.** If you find yourself
   reaching for a browser API, the code belongs in `crates/conv-wasm` instead, translating between
   JS-friendly shapes and this crate's plain Rust API — see that crate's README.
+- **Use the progress/cancellation hook if the work is long-running.** Poll
+  `options.is_cancelled()` between iterations (rows, frames, records) and return
+  `ConvertError::Cancelled` promptly once it flips; call `options.report_progress(fraction)` when
+  you have a natural unit to measure by. A fast, single-pass converter can get away with checking
+  once — see `IdentityConverter` in `crates/conv-core/src/formats/identity.rs` for the minimal
+  version of this.
 
 ### Step 3 — Register it in the format registry
 
-Add the enum variant and its metadata in `crates/conv-core/src/registry.rs`:
+Add the enum variant and its metadata in `crates/conv-core/src/registry.rs`. `Format` is
+`#[non_exhaustive]`, precisely so adding a variant here isn't a breaking change for
+`crates/conv-wasm` or any other downstream consumer — you don't need to do anything extra for
+that, just be aware existing `match`es elsewhere already have a wildcard arm:
 
 ```rust
 pub enum Format {
+    PlainText, // the foundation's placeholder — leave it alone
     Png,
     Bmp,
     Qoi, // ← new
@@ -131,6 +145,13 @@ impl Format {
     pub fn id(&self) -> &'static str {
         match self {
             Format::Qoi => "qoi",
+            // ...
+        }
+    }
+
+    pub fn category(&self) -> Category {
+        match self {
+            Format::Qoi => Category::Image,
             // ...
         }
     }
@@ -148,12 +169,25 @@ impl Format {
             // ...
         }
     }
+
+    pub fn can_read(&self) -> bool {
+        match self {
+            Format::Qoi => true,
+            // ...
+        }
+    }
+
+    pub fn can_write(&self) -> bool {
+        match self {
+            Format::Qoi => true,
+            // ...
+        }
+    }
 }
 ```
 
-Then register the conversion pair(s) your converter handles in the dispatch table (the registry
-setup function — check its rustdoc for the exact registration call, it's a small, mechanical
-addition once the foundation ticket lands):
+Then register the conversion pair(s) your converter handles, in the function that builds the
+default registry (`default_registry` in `crates/conv-core/src/lib.rs`):
 
 ```rust
 registry.register(Format::Png, Format::Qoi, Box::new(formats::image::qoi::QoiEncoder));
