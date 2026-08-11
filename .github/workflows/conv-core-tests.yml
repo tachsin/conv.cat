@@ -1,0 +1,43 @@
+# Runs the Rust workspace's tests — including conv-core's golden-file conformance suite — on
+# every push and PR. This is the CI enforcement the conformance suite needs to actually gate
+# contributions: see docs/ARCHITECTURE.md#the-conformance-suite and the "Golden-file conformance
+# suite" backlog ticket.
+#
+# Scope is deliberately just the Rust workspace: fmt/clippy/test, matching the local gate
+# `./scripts/build-all.sh --check` already runs. A broader multi-language pipeline (JS
+# typecheck/build, WASM build) is tracked separately (backlog: "CI for the new repo: Rust + JS +
+# WASM gates on every PR") — when that lands, fold this job into it rather than keeping two
+# workflows; until then, this ships now because nothing else runs `cargo test` in CI, and a
+# conformance suite nobody enforces is just documentation.
+name: conv-core tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: cargo fmt / clippy / test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # rustup on the runner picks up rust-toolchain.toml automatically (channel, components,
+      # targets) — this just forces that install to happen up front with clear log output,
+      # instead of implicitly on the first `cargo` invocation below.
+      - name: Install the pinned Rust toolchain
+        run: rustup show
+
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+      - name: Clippy (deny warnings)
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Run tests (includes the golden-file conformance suite)
+        run: cargo test --workspace

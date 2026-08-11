@@ -192,5 +192,14 @@ author, correctness is enforced by a golden-file conformance suite living in
   panic or a hang. This doubles as the security regression suite referenced in
   [SECURITY.md](SECURITY.md).
 
+The harness itself lives in `crates/conv-core/tests/support/mod.rs`: golden-file comparison (with
+a one-command `UPDATE_GOLDENS=1` regeneration path), and a watchdog-thread guard around each
+malformed-input case that catches a panic and enforces a timeout, so a misbehaving converter can
+only ever fail its own test, never crash the suite or hang CI. That guard is proven independently
+of any real converter, using test-double `Converter`s, in
+`crates/conv-core/tests/golden_harness_selftest.rs` — the harness has to be trustworthy before a
+stranger's converter PR leans on it. `.github/workflows/conv-core-tests.yml` runs the whole suite
+on every push and PR, so a conformance regression fails CI, not just a local `cargo test`.
+
 See [`docs/adding-a-format.md`](adding-a-format.md) for how a new format's golden files fit into
 this, and [CONTRIBUTING.md](CONTRIBUTING.md) for the rule on regenerating goldens.

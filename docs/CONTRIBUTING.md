@@ -104,12 +104,21 @@ pnpm build
 ```
 
 If you're adding or touching a converter, `cargo test -p conv-core` must include the golden-file
-suite for it — see [`docs/adding-a-format.md`](adding-a-format.md#step-4--golden-file-tests).
+suite for it — see [`docs/adding-a-format.md`](adding-a-format.md#step-4--golden-file-tests). This
+is enforced in CI (`.github/workflows/conv-core-tests.yml` runs `cargo fmt --check`, `cargo
+clippy -- -D warnings`, and `cargo test --workspace` on every push and PR), not just documented
+here — a conformance regression fails the build.
 
 **Regenerating a golden file is not a routine fix.** If your change legitimately changes a
-converter's output (a bug fix, an upstream codec update), regenerate the golden and explain the
-diff in your PR description — what changed and why the new output is correct. A PR that silently
-regenerates goldens to make a test pass is the one case that gets sent back without review.
+converter's output (a bug fix, an upstream codec update), regenerate it with:
+
+```bash
+UPDATE_GOLDENS=1 cargo test -p conv-core --test golden
+```
+
+then `git diff` the result and explain the diff in your PR description — what changed and why the
+new output is correct. A PR that silently regenerates goldens to make a test pass is the one case
+that gets sent back without review.
 
 ## PR expectations
 

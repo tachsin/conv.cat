@@ -202,13 +202,21 @@ native bindings automatically. You only touch those layers if your format needs 
 ### Step 4 — Golden-file tests
 
 This is not optional, and it's what makes a stranger's converter PR reviewable at all — see
-[`docs/ARCHITECTURE.md` § The conformance suite](ARCHITECTURE.md#the-conformance-suite). Fixtures
-live under `crates/conv-core/tests/fixtures/<category>/<format>/`:
+[`docs/ARCHITECTURE.md` § The conformance suite](ARCHITECTURE.md#the-conformance-suite). The
+harness (fixture layout, golden-file helpers, malformed-input guard) already exists —
+`crates/conv-core/tests/support/mod.rs` — so a new format's job is to add fixtures and a handful
+of `#[test]` functions, not to build any of this from scratch. See
+`crates/conv-core/tests/fixtures/README.md` for the full corpus rules.
+
+Fixtures live under `crates/conv-core/tests/fixtures/<category>/<format>/`, `<format>` being the
+*target* format's id:
 
 ```
 crates/conv-core/tests/
-├─ golden.rs
+├─ golden.rs                # one #[test] per fixture case, `mod support;`
+├─ support/mod.rs            # the shared harness — golden compare, malformed-input guard, etc.
 └─ fixtures/
+   ├─ README.md
    └─ image/
       └─ qoi/
          ├─ checker_4x4.png        # small, self-generated, licence-clean input
@@ -223,38 +231,62 @@ convention for a deliberately-corrupt fixture, so it can't be mistaken for a rea
 ```rust
 // crates/conv-core/tests/golden.rs
 
+mod support;
+
+use conv_core::Format;
+
 #[test]
 fn png_to_qoi_matches_golden() {
-    let input = include_bytes!("fixtures/image/qoi/checker_4x4.png");
-    let expected = include_bytes!("fixtures/image/qoi/checker_4x4.qoi");
-
-    let output = conv_core::convert(input, Format::Png, Format::Qoi, &ConvertOptions::default())
-        .expect("png -> qoi should succeed on a well-formed fixture");
-
-    assert_eq!(output, &expected[..], "QOI encoding is deterministic — a byte diff here is real");
+    support::run_golden_case(
+        "image/qoi/checker_4x4.png",
+        "image/qoi/checker_4x4.qoi",
+        Format::Png,
+        Format::Qoi,
+    );
 }
 
 #[test]
-fn malformed_input_returns_typed_error_not_panic() {
-    let input = include_bytes!("fixtures/image/qoi/truncated.png.bad");
-
-    let result = conv_core::convert(input, Format::Png, Format::Qoi, &ConvertOptions::default());
-
-    assert!(matches!(result, Err(ConvertError::MalformedInput { .. })));
+fn truncated_png_returns_typed_error_not_panic() {
+    support::assert_malformed_produces_typed_error(
+        "image/qoi/truncated.png.bad",
+        Format::Png,
+        Format::Qoi,
+    );
 }
 ```
 
-QOI is a deterministic, lossless encoder, so the golden assertion is byte-exact. If your format is
-a lossy encoder (JPEG-style), assert structural properties instead — correct dimensions, a valid
-header, clean decode, output size within a tolerance band — rather than a byte-exact diff, which
-breaks on every upstream codec version bump. See [CONTRIBUTING.md](CONTRIBUTING.md) for the rule
-on regenerating goldens when a diff is legitimate.
+`support::run_golden_case` reads both files off disk, converts through the real public
+`conv_core::convert` API, and asserts a byte-exact match — QOI is a deterministic, lossless
+encoder, so that's the right assertion. `support::assert_malformed_produces_typed_error` runs the
+conversion on a watchdog thread with a timeout and catches a panic instead of letting it escape, so
+a converter that panics or hangs on hostile input fails as a normal, readable test failure instead
+of crashing the test binary or hanging CI — that failure mode is proven independently (without
+needing a real parser) in `crates/conv-core/tests/golden_harness_selftest.rs`.
+
+If your format is a lossy encoder (JPEG-style), don't add a byte-exact golden at all — assert
+structural properties instead: `support::assert_size_within_tolerance` (dimensions/size within a
+tolerance band) and `support::assert_starts_with_magic` (a valid header), rather than a byte-exact
+diff that breaks on every upstream codec version bump. See [CONTRIBUTING.md](CONTRIBUTING.md) for
+the rule on regenerating goldens when a diff is legitimate.
+
+Finally, add every new fixture file to the `assert_no_stray_files` manifest at the bottom of
+`golden.rs` — that test fails the build if a fixture exists that no test actually exercises (a
+typo'd filename, forgotten `.bad` case, or accidental OS cruft).
 
 Run it with:
 
 ```bash
 cargo test -p conv-core
 ```
+
+If a change legitimately alters a converter's output, regenerate the affected goldens with:
+
+```bash
+UPDATE_GOLDENS=1 cargo test -p conv-core --test golden
+```
+
+then review the diff and explain it in your PR description — see
+[CONTRIBUTING.md](CONTRIBUTING.md#running-tests).
 
 ### Step 5 — Add the catalog entry
 
