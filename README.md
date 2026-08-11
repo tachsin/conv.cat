@@ -1,8 +1,8 @@
 # conv.cat
 
-**File conversion, purr-fected.** Convert images, video, audio, text/data, units, timezones and
-CAD files — entirely on your device. Nothing you convert is ever uploaded anywhere, and this
-repository is how you know that's true, not just a claim on a marketing page.
+**File conversion, purr-fected.** Convert images, video, audio, text/data, units and timezones —
+entirely on your device. Nothing you convert is ever uploaded anywhere, and this repository is
+how you know that's true, not just a claim on a marketing page.
 
 [![CI](https://github.com/tachsin/conv.cat/actions/workflows/ci.yml/badge.svg)](https://github.com/tachsin/conv.cat/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/tachsin/conv.cat/actions/workflows/codeql.yml/badge.svg)](https://github.com/tachsin/conv.cat/actions/workflows/codeql.yml)
@@ -28,7 +28,7 @@ quickstart below gets you a local build to try yourself.
 ## What makes conv.cat different
 
 - **Breadth — one tool, not a different site per file type.** Images, video, audio, text/data,
-  units, timezones, and CAD, all through the same engine and the same UI, including the genuinely
+  units, and timezones, all through the same engine and the same UI, including the genuinely
   niche stuff (clothing sizes, cooking measurements, cat/dog years) that a narrower tool wouldn't
   bother with.
 - **Six-locale i18n as a first-class citizen.** English, German, Greek, Spanish, French, and
@@ -55,7 +55,6 @@ yet — see `packages/data/src/units/README.md`).
 | Video & Audio | Whatever [ffmpeg-wasm](https://ffmpegwasm.netlify.app/) supports, via `packages/media` | 📋 Planned |
 | Text & Data | CSV, JSON, HTML, Markdown | 📋 Planned |
 | Timezones | IANA zones, interactive world map | 📋 Planned |
-| CAD | STL, STEP, OBJ | 📋 Planned |
 
 ## Quickstart
 
@@ -138,7 +137,7 @@ real (non-product) browser page pipeline end to end. See
 `crates/conv-core/src/formats/units/mod.rs` for the wire protocol and conversion models, and
 `packages/data/src/units/README.md` for what's in scope and its honest gaps.
 
-**Not done:** every other conversion category. Image, video, audio, text/data, timezone and CAD
+**Not done:** every other conversion category. Image, video, audio, text/data and timezone
 conversion don't work in this repository yet, the remaining ~41 legacy unit categories aren't
 ported, and the app shells (`apps/web`'s real Next.js UI, `apps/desktop`'s Tauri native bindings)
 are still scaffolds — the units page that exists (`apps/web/units-demo/`) is a manual QA harness,

@@ -21,14 +21,14 @@ instead — wrapping ffmpeg in Rust is explicitly out of scope and that PR will 
 > `Converter` is the authoritative version if anything here has drifted; please send a docs PR to
 > fix the drift rather than working around it silently. Units is the first real category to land
 > (backlog ticket "First vertical slice: port units to conv-core" — a representative 8-category
-> subset) — see the callout below for why its walkthrough isn't this one. No image, text/data, or
-> CAD converter exists yet, so this doc's QOI walkthrough is still the best template for those.
+> subset) — see the callout below for why its walkthrough isn't this one. No image or text/data
+> converter exists yet, so this doc's QOI walkthrough is still the best template for those.
 
 ## Worked example: adding QOI encoding to the image category
 
 We'll walk through adding [QOI](https://qoiformat.org/) (Quite OK Image) as an output format for
 the image category — a real, currently-missing format, small enough to show end to end. The same
-six steps apply to any file-shaped format in any category (images, text/data, CAD).
+six steps apply to any file-shaped format in any category (images, text/data).
 
 > **Units — and any other non-file-shaped category — don't follow this walkthrough as-is.** The
 > `Converter` trait is `&[u8] -> Vec<u8>`, built around file bytes in, file bytes out. A unit
@@ -58,7 +58,6 @@ crates/conv-core/src/
    ├─ identity.rs         # placeholder passthrough converter — not a real format, ignore it
    ├─ units/              # ← doesn't exist yet; you add it for your category
    ├─ text/                # ← doesn't exist yet; you add it for your category
-   ├─ cad/                 # ← doesn't exist yet; you add it for your category
    └─ image/               # ← doesn't exist yet; you add it for your category
       ├─ mod.rs
       ├─ png.rs

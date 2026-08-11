@@ -2,7 +2,7 @@
 //!
 //! This exists purely so the foundation (trait + registry + dispatch + error paths) has
 //! something end-to-end to compile and test against before the first real converter (units,
-//! image, text, CAD) lands. Once real converters make it unnecessary to keep the default
+//! image, text) lands. Once real converters make it unnecessary to keep the default
 //! registry non-empty for tests, this module's *registration* should be dropped — the type
 //! itself is a reasonable template for a "does nothing but must still respect the contract" test
 //! double later.

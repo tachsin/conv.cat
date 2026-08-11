@@ -12,7 +12,7 @@ for how a new format's fixtures fit in.
 tests/fixtures/<category>/<format>/
 ```
 
-`<category>` matches `conv_core::Category` (`image`, `text`, `units`, `cad`); `<format>` matches
+`<category>` matches `conv_core::Category` (`image`, `text`, `units`); `<format>` matches
 the target format's `conv_core::Format::id()`, per `docs/adding-a-format.md`.
 
 ## Fixture kinds
@@ -59,7 +59,7 @@ without review.
 Only `text/plain_text/` — golden fixtures for `IdentityConverter`, the placeholder
 `PlainText -> PlainText` passthrough that exercises the registry/dispatch pipeline (see
 `crates/conv-core/src/formats/identity.rs`). No real format converter has landed yet (image,
-units, text/CAD are all still open backlog tickets), so there is no `.bad` fixture yet either —
+units, text are all still open backlog tickets), so there is no `.bad` fixture yet either —
 `IdentityConverter` performs no parsing and has no malformed-input failure mode to exercise. The
 malformed-input harness itself (panic containment + hang timeout) is proven independently, without
 needing a real parser, in `crates/conv-core/tests/golden_harness_selftest.rs`.

@@ -9,5 +9,5 @@ for the full rationale. This package is exposed to `apps/web` / `apps/desktop` t
 `@conv.cat/engine`, the same way the Rust-backed converters are, so call sites don't need to
 know which format is native-Rust and which is ffmpeg-wasm.
 
-This package must never contain non-media conversion logic (units, images, text, CAD, …) —
+This package must never contain non-media conversion logic (units, images, text, …) —
 those belong in `crates/conv-core`. It is currently a scaffold: no ffmpeg-wasm wiring yet.

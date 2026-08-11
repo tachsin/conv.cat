@@ -96,7 +96,7 @@ discover later.
 
 ## The media boundary: video and audio stay on ffmpeg-wasm
 
-Every other category in this repo — units, images, text/data, CAD — is real conversion logic
+Every other category in this repo — units, images, text/data — is real conversion logic
 that belongs in `crates/conv-core`, ported to Rust so the same code runs natively on desktop.
 Video and audio are the deliberate exception, and `packages/media` stays TypeScript, calling
 [ffmpeg-wasm](https://ffmpegwasm.netlify.app/), by design:
@@ -117,7 +117,7 @@ Video and audio are the deliberate exception, and `packages/media` stays TypeScr
 `packages/media` is exposed to `apps/web` / `apps/desktop` through the same `@conv.cat/engine`
 interface as the Rust-backed converters, so UI call sites never need to know which category is
 native Rust and which is ffmpeg-wasm underneath. It must never contain non-media conversion logic
-(units, images, text, CAD, …) — those belong in `crates/conv-core`.
+(units, images, text, …) — those belong in `crates/conv-core`.
 
 One practical constraint that follows from this choice: threaded ffmpeg-wasm needs
 cross-origin-isolation headers (COEP/COOP) from the host page. `apps/web` has to ship those

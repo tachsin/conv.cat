@@ -19,7 +19,7 @@ use conv_core::{ConvertOptions, Format};
 // byte-identical to its input by construction. That's deliberate: these cases exist to prove the
 // fixture-driven harness itself — reading real files off disk, dispatching through the public
 // `conv_core::convert` API, comparing byte-for-byte, end to end — so the next contributor adding
-// a real format (image, units, text/CAD — see the backlog) has a proven pattern to copy, not just
+// a real format (image, units, text — see the backlog) has a proven pattern to copy, not just
 // documentation to trust.
 
 #[test]

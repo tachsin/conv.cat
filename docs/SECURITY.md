@@ -2,7 +2,7 @@
 
 ## Why this matters more than usual for a converter
 
-Every converter in this project — image, text/data, CAD, and via `packages/media`, video/audio —
+Every converter in this project — image, text/data, and via `packages/media`, video/audio —
 parses **untrusted binary files**. A user drops in a file they downloaded from anywhere, and one
 of `crates/conv-core`, `crates/conv-wasm`, or ffmpeg-wasm parses it. That makes two categories of
 bug real security issues here, not just correctness bugs:

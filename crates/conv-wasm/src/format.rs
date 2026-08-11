@@ -42,7 +42,6 @@ fn format_to_js(format: Format) -> JsValue {
         conv_core::Category::Image => "image",
         conv_core::Category::Text => "text",
         conv_core::Category::Units => "units",
-        conv_core::Category::Cad => "cad",
         // `Category` is `#[non_exhaustive]` too; a category this binding doesn't recognize yet
         // still gets a stable (if generic) label instead of panicking.
         _ => "unknown",

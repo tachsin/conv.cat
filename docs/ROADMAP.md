@@ -2,8 +2,8 @@
 
 ## The vision
 
-One tool for every conversion, everywhere: images, video, audio, text and data, units,
-timezones, and CAD, all converted locally, all powered by one Rust engine, available as a web
+One tool for every conversion, everywhere: images, video, audio, text and data, units and
+timezones, all converted locally, all powered by one Rust engine, available as a web
 app, an installable PWA, a native desktop app, and eventually a CLI — without maintaining four
 separate implementations of "how do I convert a file."
 
@@ -69,7 +69,7 @@ is a deliberate decision, not a default.
 | Status | Item |
 | --- | --- |
 | 📋 | Video/audio via ffmpeg-wasm behind `packages/engine`, in `packages/media` (see [the media boundary](ARCHITECTURE.md#the-media-boundary-video-and-audio-stay-on-ffmpeg-wasm) — this one deliberately does not move to Rust) |
-| 📋 | Text/data and CAD conversion ported to `conv-core` |
+| 📋 | Text/data conversion ported to `conv-core` |
 | 📋 | i18n re-architecture — all 6 locales (`en`, `de`, `el`, `es`, `fr`, `tr`) back, this time with a CI key-drift guardrail and placeholder validation from day one, and an evaluation of a translation platform (Weblate/Crowdin) so contributing a translation doesn't require cloning a monorepo |
 
 ## Phase 4 — PWA
@@ -103,7 +103,6 @@ exists yet, regardless of what the legacy site currently offers on the live doma
 | Text & Data | CSV, JSON, HTML, Markdown | 📋 Planned — Phase 3 |
 | Video & Audio | Whatever ffmpeg-wasm supports, via `packages/media` | 📋 Planned — Phase 3 |
 | Timezones | IANA zones, interactive world map | 📋 Planned — Phase 3 |
-| CAD | STL, STEP, OBJ | 📋 Planned — Phase 3 |
 
 See [docs/adding-a-format.md](adding-a-format.md) if you want to pull one of these forward
 yourself, or add one that isn't listed.

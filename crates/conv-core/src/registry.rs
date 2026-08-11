@@ -19,8 +19,6 @@ pub enum Category {
     /// Unit-of-measurement conversions (length, mass, temperature, …). Not a file format, but
     /// modeled the same way so the registry and dispatch logic don't need a special case for it.
     Units,
-    /// CAD/3D formats (STL, STEP, OBJ, …).
-    Cad,
 }
 
 /// A file or data format `conv-core` knows about.
