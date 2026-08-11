@@ -38,7 +38,7 @@ production.
 | ✅ | Split licence — MIT for `crates/*`/`packages/*`, AGPL-3.0-only for `apps/*` |
 | ✅ | Licence-boundary check enforced in CI on every push and PR |
 | ✅ | Community docs set — this file, [README](../README.md), [CONTRIBUTING](CONTRIBUTING.md), [ARCHITECTURE](ARCHITECTURE.md), [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md), [SECURITY](SECURITY.md), [adding-a-format](adding-a-format.md), [ai-contributions](ai-contributions.md) |
-| 📋 | Full CI — Rust + JS + WASM build/test/lint gates on every PR (today only the licence-boundary check runs) |
+| ✅ | Full CI — Rust + JS + WASM build/test/lint gates on every PR |
 
 ## Phase 1 — The engine spine
 
@@ -47,9 +47,9 @@ app depends on — deliberately built and reviewed before ten converters are wri
 
 | Status | Item |
 | --- | --- |
-| 📋 | `conv-core` foundation — the `Converter` trait, the `Format` registry, the typed error enum, the progress/cancellation hook |
-| 📋 | Golden-file conformance suite — the correctness oracle that makes a stranger's format PR reviewable at all |
-| 📋 | `conv-wasm` bindings + npm build pipeline, `packages/engine`'s WASM/native runtime selection, the Web Worker path |
+| ✅ | `conv-core` foundation — the `Converter` trait, the `Format` registry, the typed error enum, the progress/cancellation hook |
+| ✅ | Golden-file conformance suite — the correctness oracle that makes a stranger's format PR reviewable at all |
+| ✅ | `conv-wasm` bindings + npm build pipeline, `packages/engine`'s WASM/native runtime selection, the Web Worker path (native/Tauri side is a documented contract — `apps/desktop` implementing it is Phase 2's job, see below) |
 
 ## Phase 2 — Web MVP
 

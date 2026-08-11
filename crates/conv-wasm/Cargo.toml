@@ -13,3 +13,9 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 conv-core = { path = "../conv-core" }
 wasm-bindgen = "0.2"
+# js-sys: JS `Function`/`Object`/`Reflect` bindings for the progress callback and the typed
+# error/format-catalog objects handed back to JS. Not web-sys: this crate never touches the DOM
+# directly (no fetch, no Blob) — packages/engine owns loading bytes off a File/Blob before
+# calling in here, keeping this crate's JS surface (and its contribution to the .wasm budget)
+# to exactly the JS values conv-core's own API needs (functions, plain objects, typed arrays).
+js-sys = "0.3"

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>conv-wasm demo — manual QA harness, not the product UI</title>
+    <style>
+      body { font: 14px/1.5 system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+      form { display: grid; gap: 0.5rem; margin: 1rem 0; }
+      label { display: flex; gap: 0.5rem; align-items: center; }
+      dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; }
+      dt { font-weight: 600; }
+      pre { white-space: pre-wrap; background: #f4f4f4; padding: 0.5rem; }
+      progress { width: 100%; }
+    </style>
+  </head>
+  <body>
+    <h1>conv-wasm demo harness</h1>
+    <p>
+      Manual verification that a real file converts through Rust → conv-core → conv-wasm →
+      <code>@conv.cat/engine</code> in the browser, off the UI thread (a Web Worker runs the
+      actual conversion). <strong>This is not the product UI</strong> — the real single-page
+      converter shell is a separate, not-yet-built backlog ticket. Only formats
+      <code>@conv.cat/engine</code> actually knows about are selectable below; today that's the
+      plain-text passthrough only, since no real format converter has landed in
+      <code>conv-core</code> yet.
+    </p>
+
+    <dl id="engine-info">
+      <dt>Loading engine…</dt>
+      <dd></dd>
+    </dl>
+
+    <form id="convert-form">
+      <label>File <input type="file" id="file-input" required /></label>
+      <label>From <select id="from-select"></select></label>
+      <label>To <select id="to-select"></select></label>
+      <div>
+        <button type="submit">Convert</button>
+        <button type="button" id="cancel-button" disabled>Cancel</button>
+      </div>
+    </form>
+
+    <progress id="progress-bar" value="0" max="1"></progress>
+    <pre id="status">Idle.</pre>
+    <p><a id="download-link" style="display: none"></a></p>
+
+    <!--
+      Browsers only resolve bare specifiers (`import ... from "conv-wasm"`) via an import map —
+      there's no Node-style node_modules lookup in a plain `<script type="module">`. This maps
+      the same specifier packages/engine's TypeScript resolves via its `file:` dependency (see
+      package.json) to the actual file pnpm linked it to. The real web app's build goes through a
+      bundler (a separate ticket) and won't need this — bundlers resolve bare specifiers on their
+      own, including inside the Worker this page also spawns.
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "conv-wasm": "../node_modules/conv-wasm/conv_wasm.js"
+        }
+      }
+    </script>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

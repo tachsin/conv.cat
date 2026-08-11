@@ -158,23 +158,12 @@ fi
 
 # ─── 1. JS dependencies ─────────────────────────────────────────────────────
 
-step 'Installing JS dependencies'
-# --frozen-lockfile in CI so a drifting lockfile fails the build instead of
-# being silently "fixed"; locally, allow the lockfile to update.
-if [[ "${CI:-}" == 'true' ]]; then
-  pnpm install --frozen-lockfile || die 'pnpm install failed (lockfile out of date?)'
-else
-  pnpm install || die 'pnpm install failed'
-fi
-
-# ─── 2. Rust workspace ──────────────────────────────────────────────────────
-
 step 'Building Rust crates'
 cargo_flags=()
 [[ $release -eq 1 ]] && cargo_flags+=(--release)
 cargo build --workspace "${cargo_flags[@]}" || die 'cargo build failed'
 
-# ─── 3. WebAssembly artifact ────────────────────────────────────────────────
+# ─── 2. WebAssembly artifact ────────────────────────────────────────────────
 
 step 'Building WebAssembly artifact (conv-wasm)'
 # --target web produces an ES module loadable directly by the browser and by
@@ -193,6 +182,23 @@ if [[ -f crates/conv-wasm/pkg/conv_wasm_bg.wasm ]]; then
   info "conv_wasm_bg.wasm — $((wasm_size / 1024)) KB"
   # The WASM payload ships to every visitor. Surfacing the number on every
   # build is how a regression gets noticed before CI enforces a budget.
+fi
+
+# ─── 3. JS dependencies ─────────────────────────────────────────────────────
+# Deliberately AFTER the WASM build, not before: packages/engine has a real `file:` dependency
+# on crates/conv-wasm/pkg (see its package.json), so `pnpm install` has nothing to link against
+# until step 2 has produced that directory. Installing first was the original order here and
+# broke silently the moment that dependency became real — see docs/BUILD.md's build-order
+# section and packages/engine/README.md if you're wondering why this looks backwards from a
+# "usually you install JS deps first" instinct.
+
+step 'Installing JS dependencies'
+# --frozen-lockfile in CI so a drifting lockfile fails the build instead of
+# being silently "fixed"; locally, allow the lockfile to update.
+if [[ "${CI:-}" == 'true' ]]; then
+  pnpm install --frozen-lockfile || die 'pnpm install failed (lockfile out of date?)'
+else
+  pnpm install || die 'pnpm install failed'
 fi
 
 # ─── 4. JS packages and apps ────────────────────────────────────────────────

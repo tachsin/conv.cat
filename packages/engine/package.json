@@ -9,7 +9,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "demo": "node demo/serve.mjs"
+  },
+  "dependencies": {
+    "conv-wasm": "file:../../crates/conv-wasm/pkg",
+    "@tauri-apps/api": "^2.9.0"
   },
   "devDependencies": {
     "typescript": "^7.0.2"

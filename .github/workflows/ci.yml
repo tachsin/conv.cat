@@ -7,15 +7,22 @@
 #
 # ─── Job layout ─────────────────────────────────────────────────────────────────────────────
 #
-#   licence ──┐
-#   rust ─────┼──▶ (all four run in parallel; each is independently meaningful)
-#   js ───────┤
-#   wasm ─────┘
+#   licence ──────────┐
+#   rust ──────────────┼──▶ (independently meaningful; each tells you from its name alone what
+#   wasm ──▶ js ───────┘     broke — formatting, a type, the licence boundary, the bundle budget)
 #
-# Four parallel jobs rather than one sequential script, for one reason: when CI goes red, a
-# contributor should be able to tell from the job name alone whether they broke formatting, a
-# type, the licence boundary, or the bundle budget — without opening a log. `build-all.sh` is
-# still the local one-command gate; CI deliberately splits it for legibility.
+# `js` depends on `wasm` (not parallel with it, unlike the other three) because `packages/engine`
+# has a real `file:` dependency on `crates/conv-wasm/pkg` (see its package.json) — `pnpm install`
+# has nothing to link against until that directory exists. `wasm` uploads the artifact it already
+# builds for the size-budget check; `js` downloads it before installing. This is the fix the
+# `js` job used to carry as a comment on its own build step, back when packages/engine was a
+# scaffold that imported nothing and the gap didn't matter yet.
+#
+# Five jobs rather than one sequential script, for one reason: when CI goes red, a contributor
+# should be able to tell from the job name alone whether they broke formatting, a type, the
+# licence boundary, or the bundle budget — without opening a log. `build-all.sh` is still the
+# local one-command gate (and, matching this dependency, builds Rust/WASM before installing JS
+# dependencies — see its own comments); CI deliberately splits it for legibility.
 #
 # ─── Why every action is pinned to a commit SHA ─────────────────────────────────────────────
 #
@@ -84,47 +91,10 @@ jobs:
       - name: Tests (includes the golden-file conformance suite)
         run: cargo test --workspace
 
-  # ── JavaScript / TypeScript ───────────────────────────────────────────────────────────────
-  js:
-    name: JS — lint, typecheck, build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
-        # Version comes from the "packageManager" field in package.json — no second place to
-        # bump, no chance of CI and local pnpm drifting apart.
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-
-      # --frozen-lockfile: a drifting lockfile must fail the build rather than be silently
-      # "fixed" in CI, which is how an unreviewed dependency reaches main.
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      # Lint is a gate from the first commit, on purpose — see the long note at the top of
-      # eslint.config.js about the debt trap this project is rebuilding to escape.
-      - name: Lint
-        run: pnpm lint
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      # HEADS UP for whoever lands the conv-wasm bindings ticket: this job has no .wasm artifact.
-      # It works today only because packages/engine is still a scaffold that imports nothing. The
-      # moment it imports crates/conv-wasm/pkg, this build breaks here and nowhere else — the
-      # `wasm` job below produces that artifact but does not share it. Fix it then by uploading
-      # pkg/ from the wasm job and downloading it here (or by merging the two jobs), not by
-      # deleting the step that caught it.
-      - name: Build packages and apps
-        run: pnpm build
-
   # ── WebAssembly ───────────────────────────────────────────────────────────────────────────
   # Separate from the Rust job because it answers a different question: not "is the code
-  # correct" but "is what we ship to every visitor still small".
+  # correct" but "is what we ship to every visitor still small". Runs before `js`, which depends
+  # on its artifact — see the job-layout note at the top of this file.
   wasm:
     name: WASM — build and size budget
     runs-on: ubuntu-latest
@@ -148,12 +118,66 @@ jobs:
         run: cargo install wasm-pack --locked --version "$(tr -d '[:space:]' < .wasm-pack-version)"
 
       # --release because the budget is about what ships. A debug .wasm is several times larger
-      # and measuring it would make the budget meaningless.
+      # and measuring it would make the budget meaningless. This also means `js` typechecks and
+      # builds against the same release artifact CI would actually ship, not a separately-built
+      # debug one.
       - name: Build the release WASM artifact
         run: wasm-pack build crates/conv-wasm --target web --out-dir pkg --release
 
       - name: Enforce the size budget
         run: ./.github/scripts/check-wasm-size.sh
+
+      # Handed to the `js` job below, which has nothing for its `file:` dependency on this
+      # directory to resolve against otherwise. Short retention: this is an intermediate artifact
+      # for this run only, not something anyone downloads after the fact.
+      - name: Upload the WASM artifact for the js job
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: conv-wasm-pkg
+          path: crates/conv-wasm/pkg
+          retention-days: 1
+
+  # ── JavaScript / TypeScript ───────────────────────────────────────────────────────────────
+  js:
+    name: JS — lint, typecheck, build
+    needs: wasm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # packages/engine depends on this directory via a `file:` path (see its package.json) —
+      # `pnpm install` below has nothing to link against without it. See the job-layout note at
+      # the top of this file for why this job needs `wasm` instead of running in parallel with it.
+      - name: Download the WASM artifact from the wasm job
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: conv-wasm-pkg
+          path: crates/conv-wasm/pkg
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        # Version comes from the "packageManager" field in package.json — no second place to
+        # bump, no chance of CI and local pnpm drifting apart.
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      # --frozen-lockfile: a drifting lockfile must fail the build rather than be silently
+      # "fixed" in CI, which is how an unreviewed dependency reaches main.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Lint is a gate from the first commit, on purpose — see the long note at the top of
+      # eslint.config.js about the debt trap this project is rebuilding to escape.
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build packages and apps
+        run: pnpm build
 
   # ── Dependency review ─────────────────────────────────────────────────────────────────────
   # PR-only: flags a dependency added in this PR that carries a known vulnerability, before it

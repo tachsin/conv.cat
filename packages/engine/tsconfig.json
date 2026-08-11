@@ -1,6 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    // packages/engine legitimately touches host globals (Worker, window, AbortSignal,
+    // WebAssembly) unlike a purely environment-agnostic package such as packages/data — same
+    // reasoning packages/media already established for its own DOM lib addition. wasm/worker.ts
+    // is the one exception (typed against a local WorkerScope instead — see its file header for
+    // why WebWorker can't be added alongside DOM in one project).
+    "lib": ["ES2022", "DOM"],
     "outDir": "dist",
     "rootDir": "src"
   },

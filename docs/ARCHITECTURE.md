@@ -122,7 +122,12 @@ native Rust and which is ffmpeg-wasm underneath. It must never contain non-media
 One practical constraint that follows from this choice: threaded ffmpeg-wasm needs
 cross-origin-isolation headers (COEP/COOP) from the host page. `apps/web` has to ship those
 headers, and that requirement has previously conflicted with third-party embeds on the legacy
-site — worth checking before adding an embed or a script tag to `apps/web`.
+site — worth checking before adding an embed or a script tag to `apps/web`. The same headers
+would also be needed if `crates/conv-wasm` ever grows real WASM threads or `SharedArrayBuffer`-based
+cross-thread cancellation — neither exists yet (today's WASM build is single-threaded; see
+`packages/engine/README.md` "Cross-origin isolation (COEP/COOP)" for the exact trigger condition)
+— but when one of them does, it's worth solving the header/embed conflict once for both
+`packages/media` and `packages/engine`, not twice.
 
 ## Dependency direction
 

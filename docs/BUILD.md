@@ -160,3 +160,8 @@ check.
 dev server and no runnable application. `pnpm dev` does not exist yet. Until the web
 MVP lands, `build-all.sh` is how you verify a checkout is healthy. See
 [`ROADMAP.md`](ROADMAP.md) for what is actually shipped versus scoped.
+
+One exception: `packages/engine/demo/` is a small, manual QA page (not part of either app) that
+actually runs a real conversion through `crates/conv-wasm` in a browser, off the UI thread, via
+`pnpm --filter @conv.cat/engine demo` after a build. See `packages/engine/demo/README.md` — it's
+a proof harness for the WASM pipeline, not a preview of the product UI.
