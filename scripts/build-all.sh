@@ -19,7 +19,8 @@
 # Usage:
 #   ./scripts/build-all.sh              debug build of everything
 #   ./scripts/build-all.sh --release    optimised build (slower, what you ship)
-#   ./scripts/build-all.sh --check      also run fmt, clippy, tests, licence boundary
+#   ./scripts/build-all.sh --check      also run fmt, clippy, tests, lint, licence boundary
+#                                       (with --release, also the WASM size budget)
 #   ./scripts/build-all.sh --clean      remove build outputs first, then build
 #   ./scripts/build-all.sh --help       this message
 #
@@ -213,8 +214,20 @@ if [[ $run_checks -eq 1 ]]; then
   step 'Running Rust tests'
   cargo test --workspace "${cargo_flags[@]}" || die 'cargo test failed'
 
+  step 'Linting JS'
+  # Runs from the repo root: one flat config (eslint.config.js) covers the whole workspace.
+  pnpm lint || die 'eslint found issues — run: pnpm lint:fix'
+
   step 'Typechecking JS'
   pnpm -r --if-present run typecheck || die 'typecheck failed'
+
+  # Only meaningful against a release artifact — a debug .wasm is several times larger, so
+  # measuring it would either fail constantly or force a budget so loose it catches nothing.
+  # CI always builds --release, so the budget is enforced there on every PR regardless.
+  if [[ $release -eq 1 ]]; then
+    step 'Checking WASM size budget'
+    ./.github/scripts/check-wasm-size.sh || die 'WASM size budget exceeded'
+  fi
 
   step 'Checking licence boundary'
   # Enforces that no MIT crate/package depends on an AGPL app. See

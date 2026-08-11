@@ -1,0 +1,69 @@
+# Dependabot — automated dependency updates for all three ecosystems this repo uses.
+#
+# Three, not two: the GitHub Actions ecosystem matters as much as npm and cargo here, because
+# .github/workflows/ci.yml pins every action to an immutable commit SHA. Pinning without an
+# updater is how a security measure quietly becomes two-year-old code. Dependabot rewrites the
+# SHA *and* the trailing version comment, which is what makes the pinning sustainable.
+version: 2
+
+updates:
+  # ── JavaScript (pnpm workspace: root, apps/*, packages/*) ────────────────────────────────
+  # A single root entry covers the whole workspace: pnpm resolves every package through the
+  # root pnpm-lock.yaml, so that is the only lockfile to update.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # One PR for the routine noise instead of six. Patch and minor bumps to dev tooling are
+      # reviewed as a batch; anything major still arrives as its own PR, because a major bump
+      # is a decision, not a chore.
+      dev-tooling:
+        patterns:
+          - eslint
+          - '@eslint/*'
+          - typescript-eslint
+          - '@typescript-eslint/*'
+          - typescript
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # The root typescript pin is intentionally held back on 6.x: typescript-eslint refuses to
+      # load under TS 7 (hard error, not a warning — see the long note in eslint.config.js).
+      # Letting Dependabot "helpfully" bump it to 7 breaks `pnpm lint` outright. Remove this
+      # ignore in the same PR that drops the workaround, once typescript-eslint supports 7.1.
+      - dependency-name: typescript
+        versions: ['>=7']
+    commit-message:
+      prefix: 'build'
+      include: scope
+
+  # ── Rust (cargo workspace: crates/*) ─────────────────────────────────────────────────────
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: 'build'
+      include: scope
+
+  # ── GitHub Actions ───────────────────────────────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # Action bumps are almost always mechanical; batching them keeps the PR queue readable.
+      actions:
+        patterns:
+          - '*'
+    commit-message:
+      prefix: 'ci'
+      include: scope

@@ -1,0 +1,75 @@
+# CodeQL static analysis.
+#
+# This is not compliance theatre for this project specifically. conv.cat's whole premise is
+# that a stranger's file is parsed locally, in-process, by code we wrote — decoders fed
+# arbitrary bytes from an untrusted source. That is the classic shape of a memory-safety or
+# resource-exhaustion bug, and it is exactly the class CodeQL is good at finding.
+#
+# Three languages, for three distinct reasons:
+#
+#   rust                   Where the untrusted bytes are actually parsed. This is the one that
+#                          matters most, and the reason this workflow exists at all. Safe Rust
+#                          rules out memory corruption, not panics, unbounded allocation, or
+#                          integer overflow on a length field read straight out of a header.
+#   javascript-typescript  The app shell around the engine — where a converted result becomes
+#                          DOM, a Blob, or a download.
+#   actions                The workflows themselves. CI runs with a token on a public repo that
+#                          accepts PRs from strangers; a bad workflow expression is a real
+#                          escalation path, and this is what catches it.
+#
+# Separate from ci.yml on purpose: CodeQL takes minutes, is not something a contributor can fix
+# by editing their diff, and should never be the reason a formatting typo takes ten minutes to
+# report. CI stays fast and blocking; this runs alongside it and on a weekly schedule so new
+# queries are applied to old code that has not changed.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Mondays 07:00 UTC. The point of the schedule is that CodeQL ships new queries
+    # continuously — code that was clean when it merged is not clean forever.
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Required to upload results to the Security tab.
+      security-events: write
+      contents: read
+      actions: read
+
+    strategy:
+      # One language failing should still report the others rather than hiding them.
+      fail-fast: false
+      matrix:
+        language: [rust, javascript-typescript, actions]
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@c4dd10e44af883a891fe31ced449bcb4a6728b9b # v3
+        with:
+          languages: ${{ matrix.language }}
+          # `none` for all three: CodeQL builds a Rust database without invoking cargo, and the
+          # other two are not compiled at all. This keeps the job independent of the build
+          # toolchain — CodeQL should still report on a PR whose build is broken, since that is
+          # precisely when someone is most likely to be pasting in unfamiliar parsing code.
+          build-mode: none
+          queries: security-and-quality
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@c4dd10e44af883a891fe31ced449bcb4a6728b9b # v3
+        with:
+          category: /language:${{ matrix.language }}

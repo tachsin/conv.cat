@@ -49,7 +49,7 @@ partway through with a toolchain error.
 | --- | --- |
 | *(none)* | Debug build of everything. Fastest; what you want while developing. |
 | `--release` | Optimised build. Slower, and what actually gets shipped. |
-| `--check` | Additionally run `cargo fmt --check`, clippy, Rust tests, JS typecheck, and the licence-boundary check. |
+| `--check` | Additionally run `cargo fmt --check`, clippy, Rust tests, `pnpm lint`, JS typecheck, and the licence-boundary check. With `--release`, also the WASM size budget. |
 | `--clean` | Remove all build outputs first. |
 | `--help` | Usage. |
 

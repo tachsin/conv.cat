@@ -94,8 +94,9 @@ cargo test
 cargo test -p conv-core
 cargo clippy -- -D warnings
 
-# JS/TS — typecheck stands in for a test suite for now; there is no JS test runner
-# wired up yet (tracked in the backlog, tagged CI)
+# JS/TS — lint and typecheck stand in for a test suite for now; there is no JS test
+# runner wired up yet (tracked in the backlog, tagged CI)
+pnpm lint
 pnpm typecheck
 pnpm build
 
@@ -105,9 +106,9 @@ pnpm build
 
 If you're adding or touching a converter, `cargo test -p conv-core` must include the golden-file
 suite for it — see [`docs/adding-a-format.md`](adding-a-format.md#step-4--golden-file-tests). This
-is enforced in CI (`.github/workflows/conv-core-tests.yml` runs `cargo fmt --check`, `cargo
-clippy -- -D warnings`, and `cargo test --workspace` on every push and PR), not just documented
-here — a conformance regression fails the build.
+is enforced in CI (`.github/workflows/ci.yml`, job **Rust — fmt, clippy, test**, runs `cargo fmt
+--check`, `cargo clippy -- -D warnings`, and `cargo test --workspace` on every push and PR), not
+just documented here — a conformance regression fails the build.
 
 **Regenerating a golden file is not a routine fix.** If your change legitimately changes a
 converter's output (a bug fix, an upstream codec update), regenerate it with:

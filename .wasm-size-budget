@@ -1,0 +1,17 @@
+# Maximum size, in bytes, of the RELEASE build of crates/conv-wasm/pkg/conv_wasm_bg.wasm.
+# Enforced by .github/scripts/check-wasm-size.sh, which CI runs on every PR.
+#
+# This number ships to every visitor on every page load, so it is treated as a reviewable
+# number rather than an emergent one. Raising it is allowed and expected — each real format
+# converter adds bytes — but it is a deliberate line in a diff, with the reason in the PR
+# description, not something that drifts upward unnoticed over twenty merges.
+#
+# Current headroom: the empty scaffold (conv-core with only IdentityConverter) compiles to
+# ~13.3 KB release. 102400 leaves room for the first real converters before anyone has to
+# think about it, and still fails loudly if something pulls in a large dependency tree.
+#
+# Before raising this: check whether the growth is actually the format you added, or a
+# transitive dependency you did not intend to ship (`cargo tree -p conv-wasm` and
+# `wasm-pack build --release -- --features …`). Budget bumps that turn out to be an
+# accidental dependency are the exact regression this file exists to catch.
+102400

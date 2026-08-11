@@ -1,0 +1,177 @@
+# conv.cat CI — the single required check on every pull request.
+#
+# This workflow replaces two earlier standalone ones (licence-boundary.yml and
+# conv-core-tests.yml), both of which said in their own headers that they should be folded into
+# the real pipeline once it existed. This is that pipeline. The *scripts* they called are the
+# contract and are unchanged; only the workflow wrapper around them was disposable.
+#
+# ─── Job layout ─────────────────────────────────────────────────────────────────────────────
+#
+#   licence ──┐
+#   rust ─────┼──▶ (all four run in parallel; each is independently meaningful)
+#   js ───────┤
+#   wasm ─────┘
+#
+# Four parallel jobs rather than one sequential script, for one reason: when CI goes red, a
+# contributor should be able to tell from the job name alone whether they broke formatting, a
+# type, the licence boundary, or the bundle budget — without opening a log. `build-all.sh` is
+# still the local one-command gate; CI deliberately splits it for legibility.
+#
+# ─── Why every action is pinned to a commit SHA ─────────────────────────────────────────────
+#
+# A tag is mutable: whoever controls the action repo can repoint v4 at new code, and it runs
+# with our token on our repo. This project parses untrusted binary input and ships a WASM
+# artifact to every visitor, so a supply-chain compromise here is not theoretical. SHAs are
+# immutable; Dependabot (.github/dependabot.yml, github-actions ecosystem) proposes the bumps
+# so the pin never turns into rot. The trailing comment is the human-readable version.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A force-push while CI is mid-run should cancel the superseded run rather than pay for both.
+# Never cancel on main: those runs are the record of what actually landed.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Licence boundary ──────────────────────────────────────────────────────────────────────
+  # Deliberately toolchain-free (no Node, no Rust, no install) so it stays under ~10 seconds
+  # and cannot be masked by a build failure elsewhere in the matrix.
+  licence:
+    name: Licence boundary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: No library depends on apps/
+        run: ./.github/scripts/check-licence-boundary.sh
+
+  # ── Rust ──────────────────────────────────────────────────────────────────────────────────
+  rust:
+    name: Rust — fmt, clippy, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # rustup reads rust-toolchain.toml itself (channel, components, targets). Running `show`
+      # forces that install up front with clear log output instead of implicitly, mid-command.
+      - name: Install the pinned Rust toolchain
+        run: rustup show
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          # Keyed so the wasm job's differently-targeted artifacts never collide with these.
+          shared-key: rust-workspace
+
+      - name: Formatting
+        run: cargo fmt --all --check
+
+      # -D warnings is what makes #![warn(missing_docs)] in conv-core a hard gate: every public
+      # item stays documented because CI refuses to merge otherwise.
+      - name: Clippy (deny warnings)
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      # Includes conv-core's golden-file conformance suite. A conformance suite nobody enforces
+      # is just documentation — this step is what makes community converter PRs reviewable.
+      - name: Tests (includes the golden-file conformance suite)
+        run: cargo test --workspace
+
+  # ── JavaScript / TypeScript ───────────────────────────────────────────────────────────────
+  js:
+    name: JS — lint, typecheck, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        # Version comes from the "packageManager" field in package.json — no second place to
+        # bump, no chance of CI and local pnpm drifting apart.
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      # --frozen-lockfile: a drifting lockfile must fail the build rather than be silently
+      # "fixed" in CI, which is how an unreviewed dependency reaches main.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Lint is a gate from the first commit, on purpose — see the long note at the top of
+      # eslint.config.js about the debt trap this project is rebuilding to escape.
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      # HEADS UP for whoever lands the conv-wasm bindings ticket: this job has no .wasm artifact.
+      # It works today only because packages/engine is still a scaffold that imports nothing. The
+      # moment it imports crates/conv-wasm/pkg, this build breaks here and nowhere else — the
+      # `wasm` job below produces that artifact but does not share it. Fix it then by uploading
+      # pkg/ from the wasm job and downloading it here (or by merging the two jobs), not by
+      # deleting the step that caught it.
+      - name: Build packages and apps
+        run: pnpm build
+
+  # ── WebAssembly ───────────────────────────────────────────────────────────────────────────
+  # Separate from the Rust job because it answers a different question: not "is the code
+  # correct" but "is what we ship to every visitor still small".
+  wasm:
+    name: WASM — build and size budget
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install the pinned Rust toolchain
+        run: rustup show
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          shared-key: wasm
+
+      # wasm-pack is the one toolchain the repo cannot pin declaratively (no .nvmrc or
+      # rust-toolchain.toml equivalent), so .wasm-pack-version is the pin and this installs
+      # exactly it. The version matters more than a normal bump: wasm-pack bundles a
+      # wasm-bindgen CLI that must match the wasm-bindgen CRATE version in conv-wasm's
+      # Cargo.toml, and a mismatch surfaces as a confusing runtime error in the browser rather
+      # than a build failure here.
+      - name: Install pinned wasm-pack
+        run: cargo install wasm-pack --locked --version "$(tr -d '[:space:]' < .wasm-pack-version)"
+
+      # --release because the budget is about what ships. A debug .wasm is several times larger
+      # and measuring it would make the budget meaningless.
+      - name: Build the release WASM artifact
+        run: wasm-pack build crates/conv-wasm --target web --out-dir pkg --release
+
+      - name: Enforce the size budget
+        run: ./.github/scripts/check-wasm-size.sh
+
+  # ── Dependency review ─────────────────────────────────────────────────────────────────────
+  # PR-only: flags a dependency added in this PR that carries a known vulnerability, before it
+  # is merged rather than after Dependabot notices on main.
+  dependencies:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+          # NOTE: `deny-licenses` is deliberately NOT set here, even though a licence gate looks
+          # like an obvious fit for a repo with a split licence. This repo *publishes* AGPL-3.0
+          # packages (apps/*) into its own dependency graph, so an AGPL denylist risks failing on
+          # conv.cat's own apps rather than on a third-party dependency — a confusing red build
+          # that teaches people to ignore this job. The one-way apps/-vs-libraries rule that
+          # actually protects the split licence is enforced by check-licence-boundary.sh in the
+          # `licence` job above, against our own source, where the question is well-defined.

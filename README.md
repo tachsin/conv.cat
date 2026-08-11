@@ -4,7 +4,8 @@
 CAD files — entirely on your device. Nothing you convert is ever uploaded anywhere, and this
 repository is how you know that's true, not just a claim on a marketing page.
 
-[![Licence boundary](https://github.com/tachsin/conv.cat/actions/workflows/licence-boundary.yml/badge.svg)](https://github.com/tachsin/conv.cat/actions/workflows/licence-boundary.yml)
+[![CI](https://github.com/tachsin/conv.cat/actions/workflows/ci.yml/badge.svg)](https://github.com/tachsin/conv.cat/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/tachsin/conv.cat/actions/workflows/codeql.yml/badge.svg)](https://github.com/tachsin/conv.cat/actions/workflows/codeql.yml)
 [![Licence: MIT + AGPL-3.0](https://img.shields.io/badge/licence-MIT%20%2B%20AGPL--3.0-blue)](#licence)
 
 ## Your files never leave your device — here's the source
@@ -122,10 +123,19 @@ lives in `crates/conv-core`, nowhere else** — not in the apps, not in `package
 
 ## Status of this repository
 
-This is a public, from-scratch rebuild — it does not run the live conv.cat product yet. The
-monorepo scaffold, the split licence, and the licence-boundary CI check are done; the conversion
-engine itself (the `Converter` trait, the format registry, every actual converter) has not been
-built. See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the honest, staged plan — what's shipped, what's
+This is a public, from-scratch rebuild — it does not run the live conv.cat product yet.
+
+**Done:** the monorepo scaffold, the split licence and its boundary check, the `conv-core`
+foundation (the `Converter` trait, the format registry, typed errors, the cancellation hook),
+the golden-file conformance harness, and CI (Rust fmt/clippy/test, JS lint/typecheck/build,
+WASM build with a size budget, CodeQL).
+
+**Not done:** any actual converter. The registry currently holds exactly one entry — a
+plain-text passthrough that exists so the dispatch path has something to test. No image, video,
+audio, unit, timezone or CAD conversion works in this repository yet, and the WASM bindings and
+app shells are still scaffolds.
+
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the honest, staged plan — what's shipped, what's
 scoped, and what's still just direction. If you're used to the live site's current feature set,
 none of it should be assumed present here yet.
 
