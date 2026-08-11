@@ -27,11 +27,33 @@ Every member has its own `README.md` — read it before touching that code; each
 what the package is and what it must never contain (the ground rule is: **conversion logic
 lives in `crates/conv-core`, nowhere else** — not in the apps, not in `packages/data`).
 
-## License
+## Licence
 
-Split license, matching the layout above: apps are **AGPL-3.0-only**, crates and packages are
-**MIT**. This keeps the reusable engine and libraries permissively licensed while requiring
-that any hosted fork of the apps shares its source.
+conv.cat uses a split licence, matching the layout above:
+
+- **MIT** — `crates/conv-core`, `crates/conv-wasm`, `packages/engine`, `packages/media`,
+  `packages/data`. Reuse the conversion engine and libraries in your own software, including
+  closed-source and commercial software.
+- **AGPL-3.0-only** — `apps/web`, `apps/desktop`. Run a modified version of the apps as a
+  network service and you must publish the corresponding source of your modifications.
+
+Each of those directories has its own `LICENSE` file with the authoritative terms; the root
+[`LICENSE`](LICENSE) maps which licence applies where.
+
+Dependency direction matters here: `apps/*` may import the MIT packages and crates, but no
+crate or package may ever depend on `apps/*` — that would pull AGPL code into the MIT half.
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+## Trademark
+
+The licences cover the code, not the brand. The name **"conv.cat"**, the **conv.cat domain**,
+and the **conv.cat logo and mascot** are not granted by either licence and remain the property
+of the project owner.
+
+You are free to fork, modify and redistribute the code under the terms above, but a fork must
+not present itself as conv.cat: pick your own name, your own domain and your own logo, and do
+not imply that your build is the official one or endorsed by it. Referring to conv.cat
+factually — "based on conv.cat", "a fork of conv.cat" — is fine.
 
 ## Getting started
 
