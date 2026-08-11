@@ -32,6 +32,9 @@
 
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
+import nextPlugin from '@next/eslint-plugin-next';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
+import reactHooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
   {
@@ -43,9 +46,12 @@ export default tseslint.config(
     // purpose, since it isn't source the package ships. Typed linting needs a tsconfig project to
     // resolve against, which these files deliberately don't have; see packages/engine/demo/README.md
     // and apps/web/units-demo/README.md for what they're for instead.
-    // packages/data/scripts/** and scripts/*.mjs are the same story for build/codegen tooling
-    // (packages/data/scripts/copy-json-assets.mjs, scripts/generate-units-catalog.mjs) — plain
-    // Node scripts run directly, not compiled by any package's `tsc`.
+    // packages/data/scripts/**, scripts/*.mjs and apps/web/postcss.config.mjs are the same
+    // story for build/codegen/tooling config (packages/data/scripts/copy-json-assets.mjs,
+    // scripts/generate-units-catalog.mjs) — plain Node/PostCSS config run directly, not
+    // compiled by any package's `tsc`, so there's no tsconfig project for typed rules to attach
+    // to.
+    // apps/web/.next/** is Next.js's own build cache/output — generated, not ours.
     ignores: [
       '**/dist/**',
       '**/node_modules/**',
@@ -55,6 +61,8 @@ export default tseslint.config(
       'apps/web/units-demo/**',
       'packages/data/scripts/**',
       'scripts/*.mjs',
+      'apps/web/postcss.config.mjs',
+      'apps/web/.next/**',
     ],
   },
 
@@ -65,7 +73,9 @@ export default tseslint.config(
   ...tseslint.configs.recommendedTypeChecked,
 
   {
-    files: ['**/*.ts'],
+    // `.tsx` joined `.ts` here (not split into its own block) once apps/web became the first
+    // package with real JSX in the workspace — same type-aware parserOptions apply to both.
+    files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
       parserOptions: {
         // Type-aware linting across the workspace. projectService resolves each file to its
@@ -82,6 +92,29 @@ export default tseslint.config(
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
     },
+  },
+
+  // ─── apps/web: the only package with JSX/React today ──────────────────────────────────────
+  // Scoped to apps/web rather than added workspace-wide: crates/*/packages/* are UI-free by
+  // design (see docs/ARCHITECTURE.md's dependency-direction rule) and never gain JSX, so there's
+  // no reason for every other package to carry React/Next/a11y rule evaluation.
+  {
+    files: ['apps/web/src/**/*.{ts,tsx}'],
+    ...jsxA11y.flatConfigs.recommended,
+  },
+  {
+    files: ['apps/web/src/**/*.{ts,tsx}'],
+    ...nextPlugin.configs.recommended,
+    settings: { next: { rootDir: 'apps/web' } },
+  },
+  {
+    // eslint-plugin-react-hooks@7's exported "flat" configs still hand back the legacy
+    // eslintrc `plugins: ['react-hooks']` string-array shape (not a flat-config plugins
+    // object) — spreading it directly throws. Only its `rules` object is reusable as-is; the
+    // plugin itself is wired in manually here.
+    files: ['apps/web/src/**/*.{ts,tsx}'],
+    plugins: { 'react-hooks': reactHooks },
+    rules: reactHooks.configs['recommended-latest'].rules,
   },
 
   {

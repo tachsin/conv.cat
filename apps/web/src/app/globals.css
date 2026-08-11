@@ -1,0 +1,249 @@
+@import 'tailwindcss';
+@plugin 'daisyui' {
+  themes: convcat-dark --default, convcat --prefersdark;
+  logs: false;
+}
+
+/* The two conv.cat brand themes — ported from the legacy app's `app/globals.css` (warm
+ * amber/tan oklch palette, dark-first). Only the two DaisyUI themes this app actually offers a
+ * toggle for (see src/lib/theme.ts) — the legacy file also defined light/dark/night/etc. as
+ * DaisyUI fallbacks it never exposed a picker option for; not carried over here. */
+@plugin 'daisyui/theme' {
+  name: 'convcat-dark';
+  default: true;
+  color-scheme: dark;
+  --color-base-100: oklch(22% 0.02 265);
+  --color-base-200: oklch(18% 0.022 265);
+  --color-base-300: oklch(14% 0.024 265);
+  --color-base-content: oklch(97% 0.01 85);
+  --color-primary: oklch(82% 0.12 85);
+  --color-primary-content: oklch(18% 0.03 55);
+  --color-secondary: oklch(32% 0.03 265);
+  --color-secondary-content: oklch(92% 0.02 85);
+  --color-accent: oklch(75% 0.1 58);
+  --color-accent-content: oklch(18% 0.03 55);
+  --color-neutral: oklch(28% 0.025 265);
+  --color-neutral-content: oklch(92% 0.02 85);
+  --color-error: oklch(70% 0.19 25);
+  --radius-box: 1rem;
+}
+
+@plugin 'daisyui/theme' {
+  name: 'convcat';
+  color-scheme: light;
+  --color-base-100: oklch(97.8% 0.014 85);
+  --color-base-200: oklch(95.2% 0.022 82);
+  --color-base-300: oklch(90.5% 0.028 78);
+  --color-base-content: oklch(34% 0.045 55);
+  --color-primary: oklch(67% 0.165 48);
+  --color-primary-content: oklch(99% 0.01 85);
+  --color-secondary: oklch(88% 0.038 75);
+  --color-secondary-content: oklch(38% 0.05 55);
+  --color-accent: oklch(78% 0.1 58);
+  --color-accent-content: oklch(30% 0.05 55);
+  --color-neutral: oklch(42% 0.035 55);
+  --color-neutral-content: oklch(97% 0.01 85);
+  --color-info: oklch(70% 0.12 230);
+  --color-success: oklch(68% 0.14 145);
+  --color-warning: oklch(80% 0.14 75);
+  --color-error: oklch(55% 0.2 25);
+  --radius-box: 1.25rem;
+  --radius-field: 0.75rem;
+  --radius-selector: 9999px;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    color: var(--color-base-content);
+    background:
+      radial-gradient(circle at 14% 0%, color-mix(in oklch, var(--color-primary) 16%, transparent), transparent 38%),
+      radial-gradient(
+        circle at 86% 12%,
+        color-mix(in oklch, var(--color-secondary) 12%, transparent),
+        transparent 34%
+      ),
+      var(--color-base-300);
+  }
+
+  /* Visible focus everywhere, on every interactive element — not just the ones that happen to
+   * get bespoke focus styling below. Cheap now, per the ticket's own framing; expensive to
+   * retrofit later once someone ships a component that quietly relies on the browser default. */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+@layer components {
+  .skip-link {
+    @apply sr-only;
+    &:focus {
+      @apply not-sr-only fixed top-2 left-2 z-50 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-content shadow-lg;
+    }
+  }
+
+  .glass-card {
+    @apply border border-base-content/10 bg-base-100/70 text-base-content backdrop-blur-2xl;
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, var(--color-base-content) 10%, transparent),
+      0 0 0 1px color-mix(in oklch, var(--color-base-content) 4%, transparent);
+  }
+
+  .btn-primary {
+    @apply rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-content shadow-sm transition hover:brightness-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .btn-secondary {
+    @apply rounded-lg border border-base-content/15 bg-base-content/5 px-4 py-2 text-sm font-medium text-base-content backdrop-blur-md transition hover:bg-base-content/10 active:scale-[0.98];
+  }
+
+  .panel {
+    @apply rounded-lg border border-base-content/10 bg-base-content/5 text-base-content backdrop-blur-md;
+  }
+
+  .page-eyebrow {
+    @apply text-[11px] font-semibold tracking-wider text-primary/70 uppercase;
+  }
+
+  .drop-zone {
+    @apply flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-base-content/5 p-6 text-center text-base-content transition outline-none hover:border-primary/45 hover:bg-primary/5 focus-visible:ring-2 focus-visible:ring-primary/25 aria-disabled:cursor-not-allowed aria-disabled:opacity-50;
+  }
+
+  .drop-zone--active {
+    @apply border-primary/50 bg-primary/10 ring-2 ring-primary/20;
+  }
+
+  .drop-zone--fill {
+    @apply min-h-40 py-8 sm:min-h-48 sm:py-10;
+  }
+
+  .drop-zone-icon {
+    @apply grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-primary/20 bg-primary/10 text-lg;
+  }
+
+  .drop-zone-body {
+    @apply mt-3 w-full max-w-md text-center;
+  }
+
+  .drop-zone-title {
+    @apply block text-sm font-semibold text-base-content;
+  }
+
+  .drop-zone-hint {
+    @apply mt-1 block text-xs leading-relaxed text-base-content/50;
+  }
+
+  .converter-highlight {
+    @apply rounded-xl border border-primary/20 bg-primary/5 p-4;
+  }
+
+  .converter-stack {
+    @apply mx-auto flex w-full flex-col gap-3 sm:gap-4;
+  }
+
+  .converter-stack--narrow {
+    @apply max-w-3xl;
+  }
+
+  .converter-panel {
+    @apply rounded-xl p-3 shadow-2xl shadow-base-content/10 sm:p-5;
+  }
+
+  .converter-footer {
+    @apply mt-6 mb-4 border-t border-base-content/10 pt-4 text-center text-[11px] text-base-content/40;
+  }
+
+  .converter-file-list {
+    @apply grid gap-2;
+  }
+
+  .converter-file-row {
+    @apply flex items-center gap-3 rounded-lg border border-base-content/10 bg-base-content/5 p-2.5;
+  }
+
+  .converter-file-row--converting {
+    @apply border-primary/25 bg-primary/5;
+  }
+
+  .converter-file-thumb {
+    @apply h-11 w-11 shrink-0 overflow-hidden rounded-md border border-base-content/10 object-cover;
+  }
+
+  .converter-file-thumb--empty {
+    @apply grid place-items-center bg-base-content/5 text-lg;
+  }
+
+  .converter-file-status {
+    @apply text-[11px] font-semibold tracking-wider uppercase;
+  }
+
+  .converter-file-status--ready {
+    @apply text-emerald-600/85;
+  }
+
+  .converter-file-status--done {
+    @apply text-primary/80;
+  }
+
+  .converter-file-status--active {
+    @apply text-base-content/55;
+  }
+
+  .converter-file-status--error {
+    @apply text-error/85;
+  }
+
+  .converter-file-remove {
+    @apply grid h-7 w-7 shrink-0 place-items-center rounded-full border border-base-content/10 text-base text-base-content/45 transition hover:border-error/30 hover:bg-error/10 hover:text-error;
+  }
+
+  .converter-progress-track {
+    @apply h-1.5 w-full appearance-none overflow-hidden rounded-full bg-base-content/10;
+  }
+
+  .converter-progress-track::-webkit-progress-bar {
+    @apply rounded-full bg-base-content/10;
+  }
+
+  .converter-input {
+    @apply rounded-lg border border-base-content/10 bg-base-content/5 text-sm text-base-content outline-none focus-visible:border-primary/30 focus-visible:ring-2 focus-visible:ring-primary/10;
+  }
+
+  .nav-header {
+    @apply sticky top-0 z-30 w-full border-b border-base-content/10 bg-base-100/92 backdrop-blur-md;
+  }
+
+  .theme-picker-btn {
+    @apply flex h-9 w-auto items-center gap-1 rounded-lg border border-base-content/10 bg-transparent px-2.5 text-xs font-medium text-base-content outline-none transition hover:bg-base-content/5;
+  }
+}
+
+@layer utilities {
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up {
+      animation: none;
+    }
+  }
+}

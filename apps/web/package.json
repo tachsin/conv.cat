@@ -5,16 +5,27 @@
   "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "dev": "next dev --port 3011",
+    "build": "next build",
+    "start": "next start --port 3011",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist .next",
     "demo": "node units-demo/serve.mjs"
   },
   "dependencies": {
     "@conv.cat/engine": "workspace:*",
-    "@conv.cat/data": "workspace:*"
+    "@conv.cat/data": "workspace:*",
+    "next": "^16.3.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "daisyui": "^5.7.16",
+    "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2"
   }
 }
