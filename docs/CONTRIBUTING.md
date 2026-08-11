@@ -7,7 +7,9 @@ will get you there faster than this file.
 
 This project is largely built with AI-assisted agents, and that's fine — see
 [`docs/ai-contributions.md`](ai-contributions.md) for the rules that come with that (short
-version: you're accountable for what you submit, and you must have actually run it).
+version: you're accountable for what you submit, and you must have actually run it). If you are
+pointing a coding agent at this repo, [`AGENTS.md`](../AGENTS.md) in the root is written for the
+agent itself — the invariants, the commands, and the traps that look like bugs but aren't.
 
 ## Setup
 
