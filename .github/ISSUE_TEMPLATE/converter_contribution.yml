@@ -1,0 +1,55 @@
+name: Converter contribution (proposal)
+description: >
+  Planning to submit a new converter? Open this first for anything non-trivial — it's a quick
+  way to avoid two people building the same thing, or building the wrong shape.
+title: "[Converter]: "
+labels: ["converter-contribution"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is optional for a small, obvious addition (e.g. one more image codec) — feel free
+        to skip straight to a PR for those. It's genuinely useful for anything that might need a
+        new `ConvertOptions` field, touches the format registry shape, or you're not sure fits
+        the existing `Converter` trait. Read
+        [docs/adding-a-format.md](https://github.com/tachsin/conv.cat/blob/main/docs/adding-a-format.md)
+        first — most questions are answered there.
+
+  - type: input
+    id: format
+    attributes:
+      label: Format / conversion pair
+      placeholder: e.g. "PNG → QOI"
+    validations:
+      required: true
+
+  - type: textarea
+    id: approach
+    attributes:
+      label: Implementation approach
+      description: >
+        Rough plan — which crate/module, any external crates you'd pull in, anything unusual
+        about the format (streaming needs, lossy vs. lossless, non-trivial options).
+    validations:
+      required: true
+
+  - type: textarea
+    id: fixtures
+    attributes:
+      label: Golden fixtures
+      description: >
+        How will you produce the test corpus (docs/adding-a-format.md § golden-file tests)?
+        Self-generated, or a specific CC0 source — never files pulled off the web with unclear
+        rights.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I've read docs/adding-a-format.md
+          required: true
+        - label: This isn't out of scope (e.g. wrapping ffmpeg in Rust — see ARCHITECTURE.md § the media boundary)
+          required: true

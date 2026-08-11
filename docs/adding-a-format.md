@@ -1,0 +1,302 @@
+# Adding a format
+
+This is the single doc you need to ship a new conversion. Read this end to end before opening a
+PR that adds a format, and you shouldn't need to go spelunking through the rest of the codebase.
+
+**Read this first if you don't write Rust: format work means writing Rust.** Every conversion
+algorithm lives in `crates/conv-core`, a plain Rust crate — see
+[`docs/ARCHITECTURE.md`](ARCHITECTURE.md). There is no "add a converter in TypeScript" path;
+that boundary is deliberate (it's what lets the same conversion run natively on desktop, not just
+in the browser). If Rust isn't your thing, that's genuinely fine — translation
+(`packages/data/src/i18n`), format catalog metadata, docs, and testing are all real contributions
+that don't touch `crates/conv-core`. This doc still shows you where those pieces live, at the end.
+
+Video and audio are the one exception: they go through ffmpeg-wasm in `packages/media`, not
+`crates/conv-core`. If your format is a video or audio container/codec, stop reading this and see
+[`docs/ARCHITECTURE.md` § The media boundary](ARCHITECTURE.md#the-media-boundary-video-and-audio-stay-on-ffmpeg-wasm)
+instead — wrapping ffmpeg in Rust is explicitly out of scope and that PR will be closed.
+
+> **A note on timing.** As of this writing, `crates/conv-core` is still a scaffold: the
+> `Converter` trait and format registry described below are specified in the "conv-core
+> foundation" backlog ticket and may not exist in your checkout yet. Once it lands, the trait's
+> rustdoc is the source of truth if anything here has drifted — please send a docs PR to fix the
+> drift rather than working around it silently. The shape below is not a guess; it's the actual
+> spec that ticket is built against, kept here so the first contributors have something concrete
+> to build with.
+
+## Worked example: adding QOI encoding to the image category
+
+We'll walk through adding [QOI](https://qoiformat.org/) (Quite OK Image) as an output format for
+the image category — a real, currently-missing format, small enough to show end to end. The same
+six steps apply to any format in any category (units, images, text/data, CAD).
+
+### Step 1 — Decide the format id and where the code lives
+
+Conversion code is organized by category under `crates/conv-core/src/formats/`:
+
+```
+crates/conv-core/src/
+├─ lib.rs
+├─ registry.rs           # the Format enum + the dispatch table
+├─ error.rs               # ConvertError
+└─ formats/
+   ├─ mod.rs
+   ├─ units/
+   ├─ text/
+   ├─ cad/
+   └─ image/
+      ├─ mod.rs
+      ├─ png.rs
+      ├─ bmp.rs
+      └─ qoi.rs           # ← new file
+```
+
+Pick a short, lowercase, stable id for the format — `qoi` — you'll reuse it as the `Format` enum
+variant name, the catalog entry id, and the i18n key segment. Changing it later is a breaking
+change across three files, so get it right up front (match the format's own name/extension where
+one obviously exists).
+
+### Step 2 — Implement the `Converter` trait
+
+Every converter implements one trait, defined in `crates/conv-core`:
+
+```rust
+// crates/conv-core/src/lib.rs (trait shape — see its rustdoc for the authoritative version)
+pub trait Converter {
+    fn convert(
+        &self,
+        input: &[u8],
+        from: Format,
+        to: Format,
+        options: &ConvertOptions,
+    ) -> Result<Vec<u8>, ConvertError>;
+}
+```
+
+Your implementation:
+
+```rust
+// crates/conv-core/src/formats/image/qoi.rs
+
+use crate::{ConvertError, ConvertOptions, Converter, Format};
+use crate::formats::image::raster::{decode_raster, RawImage};
+
+pub struct QoiEncoder;
+
+impl Converter for QoiEncoder {
+    fn convert(
+        &self,
+        input: &[u8],
+        from: Format,
+        _to: Format,
+        _options: &ConvertOptions,
+    ) -> Result<Vec<u8>, ConvertError> {
+        let image: RawImage = decode_raster(input, from)
+            .map_err(|_| ConvertError::MalformedInput { format: from })?;
+
+        Ok(encode_qoi(&image))
+    }
+}
+
+fn encode_qoi(image: &RawImage) -> Vec<u8> {
+    // ... the actual QOI encoding algorithm goes here ...
+    todo!()
+}
+```
+
+Two rules that the conv-core foundation ticket calls out explicitly, because they're easy to get
+wrong on the first pass:
+
+- **No `unwrap()`/`expect()`/`panic!()` reachable from `input`.** These converters run on
+  untrusted bytes; a panic here is a denial-of-service, not a crash you can shrug off. Return
+  `ConvertError::MalformedInput` (or a more specific variant) instead. This is treated as a
+  security bug — see [SECURITY.md](SECURITY.md).
+- **No `wasm-bindgen`, `web-sys`, or `js-sys` in `crates/conv-core`.** If you find yourself
+  reaching for a browser API, the code belongs in `crates/conv-wasm` instead, translating between
+  JS-friendly shapes and this crate's plain Rust API — see that crate's README.
+
+### Step 3 — Register it in the format registry
+
+Add the enum variant and its metadata in `crates/conv-core/src/registry.rs`:
+
+```rust
+pub enum Format {
+    Png,
+    Bmp,
+    Qoi, // ← new
+    // ...
+}
+
+impl Format {
+    pub fn id(&self) -> &'static str {
+        match self {
+            Format::Qoi => "qoi",
+            // ...
+        }
+    }
+
+    pub fn mime(&self) -> &'static str {
+        match self {
+            Format::Qoi => "image/qoi",
+            // ...
+        }
+    }
+
+    pub fn extensions(&self) -> &'static [&'static str] {
+        match self {
+            Format::Qoi => &["qoi"],
+            // ...
+        }
+    }
+}
+```
+
+Then register the conversion pair(s) your converter handles in the dispatch table (the registry
+setup function — check its rustdoc for the exact registration call, it's a small, mechanical
+addition once the foundation ticket lands):
+
+```rust
+registry.register(Format::Png, Format::Qoi, Box::new(formats::image::qoi::QoiEncoder));
+registry.register(Format::Bmp, Format::Qoi, Box::new(formats::image::qoi::QoiEncoder));
+```
+
+You do not need to touch `crates/conv-wasm` or `packages/engine` for a format that uses existing
+option types — dispatch is table-driven, so a new registry entry is visible through the WASM and
+native bindings automatically. You only touch those layers if your format needs a genuinely new
+`ConvertOptions` field that doesn't exist yet.
+
+### Step 4 — Golden-file tests
+
+This is not optional, and it's what makes a stranger's converter PR reviewable at all — see
+[`docs/ARCHITECTURE.md` § The conformance suite](ARCHITECTURE.md#the-conformance-suite). Fixtures
+live under `crates/conv-core/tests/fixtures/<category>/<format>/`:
+
+```
+crates/conv-core/tests/
+├─ golden.rs
+└─ fixtures/
+   └─ image/
+      └─ qoi/
+         ├─ checker_4x4.png        # small, self-generated, licence-clean input
+         ├─ checker_4x4.qoi        # expected output — byte-exact, QOI is deterministic
+         └─ truncated.png.bad      # deliberately corrupt input
+```
+
+Keep fixtures tiny (a handful of pixels is enough to exercise the encoding) and either
+self-generated or CC0 — never commit an image pulled off the web into this repo. `.bad` is the
+convention for a deliberately-corrupt fixture, so it can't be mistaken for a real asset.
+
+```rust
+// crates/conv-core/tests/golden.rs
+
+#[test]
+fn png_to_qoi_matches_golden() {
+    let input = include_bytes!("fixtures/image/qoi/checker_4x4.png");
+    let expected = include_bytes!("fixtures/image/qoi/checker_4x4.qoi");
+
+    let output = conv_core::convert(input, Format::Png, Format::Qoi, &ConvertOptions::default())
+        .expect("png -> qoi should succeed on a well-formed fixture");
+
+    assert_eq!(output, &expected[..], "QOI encoding is deterministic — a byte diff here is real");
+}
+
+#[test]
+fn malformed_input_returns_typed_error_not_panic() {
+    let input = include_bytes!("fixtures/image/qoi/truncated.png.bad");
+
+    let result = conv_core::convert(input, Format::Png, Format::Qoi, &ConvertOptions::default());
+
+    assert!(matches!(result, Err(ConvertError::MalformedInput { .. })));
+}
+```
+
+QOI is a deterministic, lossless encoder, so the golden assertion is byte-exact. If your format is
+a lossy encoder (JPEG-style), assert structural properties instead — correct dimensions, a valid
+header, clean decode, output size within a tolerance band — rather than a byte-exact diff, which
+breaks on every upstream codec version bump. See [CONTRIBUTING.md](CONTRIBUTING.md) for the rule
+on regenerating goldens when a diff is legitimate.
+
+Run it with:
+
+```bash
+cargo test -p conv-core
+```
+
+### Step 5 — Add the catalog entry
+
+Format metadata that the UI needs (display grouping, icons, ordering) lives in
+`packages/data`, separate from the Rust registry so `apps/web` and `apps/desktop` can read it
+without linking Rust:
+
+```json
+// packages/data/src/catalogs/image.json
+{
+  "id": "qoi",
+  "category": "image",
+  "labelKey": "formats.image.qoi.name",
+  "mime": "image/qoi",
+  "extensions": ["qoi"],
+  "canRead": true,
+  "canWrite": true
+}
+```
+
+Keep the `id` identical to the Rust `Format::id()` string from Step 3 — that's the join key
+between the catalog and the engine, and nothing currently enforces they match, so a typo here
+silently breaks that format in the UI without any error. Double-check it by hand until a lint
+exists for it.
+
+### Step 6 — Add the i18n keys
+
+Display strings are translation keys, never hardcoded English, and never returned as strings from
+`conv-core` (see [`docs/ARCHITECTURE.md` § Typed errors and identifiers](ARCHITECTURE.md#typed-errors-and-identifiers-not-human-strings)).
+Add the key to every locale file under `packages/data/src/i18n/translations/`:
+
+```json
+// packages/data/src/i18n/translations/en.json
+{
+  "formats": {
+    "image": {
+      "qoi": {
+        "name": "QOI (Quite OK Image)",
+        "description": "A simple, fast, lossless image format."
+      }
+    }
+  }
+}
+```
+
+conv.cat targets six locales (`en`, `de`, `el`, `es`, `fr`, `tr`). Add the same key path to all
+six files. If you don't speak all of them, put the English string in every locale file rather
+than skipping the key — a missing key falls back to raw English mid-sentence at runtime, which
+is worse than an untranslated-but-present string, and it's exactly the drift problem the i18n
+re-architecture effort exists to prevent (see [ROADMAP.md](ROADMAP.md)). Say in your PR
+description which locales you left in English so a translator can follow up. There is no CI
+key-drift check yet for the new repo, so a maintainer checks this by hand — see
+[docs/ai-contributions.md](ai-contributions.md) if this is an AI-assisted contribution, since a
+plausible-looking but wrong translation is exactly the kind of thing that needs a human check.
+
+### Step 7 — Open the PR
+
+Use the checklist in the PR template. For a format contribution specifically, a reviewer expects:
+
+- [ ] The converter implements `Converter` and lives under `crates/conv-core/src/formats/<category>/`.
+- [ ] It is registered in `crates/conv-core/src/registry.rs`.
+- [ ] Golden fixtures exist for at least one valid conversion and one malformed-input case.
+- [ ] `cargo test -p conv-core` and `cargo clippy -- -D warnings` are clean.
+- [ ] The catalog entry exists in `packages/data` and its `id` matches the Rust `Format` id.
+- [ ] The i18n key exists in `en.json` at minimum, with a note on which other locales are covered.
+- [ ] `./.github/scripts/check-licence-boundary.sh` passes (it will, unless you imported from `apps/*`).
+
+## If you don't write Rust
+
+Real contributions that never touch `crates/conv-core`:
+
+- **Translation** — fill in a missing i18n key or a whole locale in `packages/data/src/i18n`.
+- **Catalog data** — unit definitions, timezone data, format metadata in `packages/data`.
+- **Docs** — this file included; if a step above turned out to be wrong once the real trait
+  landed, that's a docs PR.
+- **Testing** — expanding the golden-fixture corpus for an existing converter, including more
+  malformed-input cases, doesn't require writing the converter itself.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and PR conventions that apply to all of the above.

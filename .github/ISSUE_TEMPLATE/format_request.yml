@@ -1,0 +1,61 @@
+name: Format request
+description: Ask for a format or conversion pair that isn't supported yet.
+title: "[Format request]: "
+labels: ["format-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Requesting a format doesn't commit you to building it — but if you *do* want to build
+        it yourself, say so below and read
+        [docs/adding-a-format.md](https://github.com/tachsin/conv.cat/blob/main/docs/adding-a-format.md)
+        first. Format work happens in Rust (`crates/conv-core`), except video/audio which goes
+        through ffmpeg-wasm — see
+        [ARCHITECTURE.md](https://github.com/tachsin/conv.cat/blob/main/docs/ARCHITECTURE.md).
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Image
+        - Video / Audio
+        - Text & Data
+        - Units
+        - Timezones
+        - CAD
+        - Something new (describe below)
+    validations:
+      required: true
+
+  - type: input
+    id: format
+    attributes:
+      label: Format(s) or conversion pair
+      placeholder: e.g. "AVIF encode", "STEP → OBJ", "a new unit category: shoe sizes"
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why does this matter?
+      description: Real use case, not just "would be nice" — helps with prioritization.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: offer
+    attributes:
+      label: Are you interested in building it?
+      options:
+        - label: I'd like to implement this myself (I've read docs/adding-a-format.md)
+        - label: I'm requesting it for someone else to pick up
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I checked the ROADMAP and existing issues — this isn't already tracked
+          required: true

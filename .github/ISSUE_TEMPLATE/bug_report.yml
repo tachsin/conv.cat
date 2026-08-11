@@ -1,0 +1,67 @@
+name: Bug report
+description: Something doesn't work the way it should — a conversion is wrong, a crash, a UI bug.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. If this is a **security issue** (a crash on a crafted file, a
+        WASM memory-safety bug, anything that smells like it could be exploited) please do
+        **not** file it here — use the private route in
+        [SECURITY.md](https://github.com/tachsin/conv.cat/blob/main/docs/SECURITY.md) instead.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where does this happen?
+      options:
+        - apps/web (the website)
+        - apps/desktop (the desktop app)
+        - A specific conversion (crates/conv-core)
+        - Video/audio conversion (packages/media)
+        - Something else / not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: >
+        For a bad conversion, please attach (or describe how to produce) the input file — a
+        small sample is far more useful than a description. Please only attach files you're
+        comfortable being shared publicly; they may end up as a test fixture once fixed.
+      placeholder: |
+        1. Go to '...'
+        2. Convert file '...' from X to Y
+        3. See error / wrong output
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser + OS, or desktop app version + OS
+      placeholder: e.g. Firefox 130 / macOS 15, or conv.cat desktop 0.1.0 / Windows 11
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and didn't find a duplicate
+          required: true
+        - label: This is not a security issue (or I've already reported it privately per SECURITY.md)
+          required: true

@@ -1,9 +1,20 @@
 # docs
 
-Community and architecture documentation for conv.cat: `CONTRIBUTING.md`, `ARCHITECTURE.md`,
-`ROADMAP.md`, the Code of Conduct, and `SECURITY.md`. This folder is mostly a placeholder — the
-actual docs set is written in a follow-up ticket ("Write the community docs set"). It must never
-contain code; it is documentation only.
+Community and architecture documentation for conv.cat.
 
-`ARCHITECTURE.md` already exists as a stub: it carries the dependency-direction rule that keeps
-the MIT half of the repo free of AGPL code. Extend that file, do not replace it.
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — the Rust-core-to-WASM/native design, the dependency
+  boundary between the MIT libraries and the AGPL apps, the media boundary, and how a conversion
+  request actually flows.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — setup, the monorepo tour, commit conventions, how to run
+  tests, PR expectations.
+- [`adding-a-format.md`](adding-a-format.md) — the complete worked example for adding one
+  conversion end to end. Read this before opening a converter PR.
+- [`ROADMAP.md`](ROADMAP.md) — the staged plan from the current scaffold to web → PWA → desktop →
+  CLI, and where this repo stands relative to the live product.
+- [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) — Contributor Covenant 2.1.
+- [`SECURITY.md`](SECURITY.md) — private vulnerability disclosure; why malformed-input crashes and
+  WASM memory-safety bugs are treated as security reports here.
+- [`ai-contributions.md`](ai-contributions.md) — the policy on AI-assisted PRs: welcome, but the
+  submitter is accountable, must have tested it, and must disclose it.
+
+This folder is documentation only — it must never contain code.
