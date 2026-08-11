@@ -121,8 +121,47 @@ than committing.
 
 `build-all.sh` prints the size of `conv_wasm_bg.wasm` on every run. That payload
 ships to every visitor, so the number is surfaced deliberately: a regression should
-be visible while you are building, not discovered later. A CI budget that fails the
-build on regression is [scoped in the roadmap](ROADMAP.md).
+be visible while you are building, not discovered later.
+
+## WASM size: the budget, and finding out what grew
+
+The budget lives in [`.wasm-size-budget`](../.wasm-size-budget) and is enforced by
+`.github/scripts/check-wasm-size.sh` — in CI on every PR, and locally under
+`./scripts/build-all.sh --release --check`.
+
+When it fails, **do not just raise the number.** Find out what grew first:
+
+```bash
+pnpm wasm:report          # builds both artifacts, then reports
+```
+
+That prints three things:
+
+1. **Sections** — where the bytes physically are. `code` is compiled logic;
+   `data` is static bytes (unit tables, strings, catalogs). A large `data`
+   section means the catalog *is* the payload, and no amount of code
+   restructuring will shrink it.
+2. **Exports** — the artifact's actual public surface, separating your
+   `#[wasm_bindgen]` API from the `__wbindgen_*` runtime glue.
+3. **Code size by module** — which Rust module contributed what, grouped into
+   your code / bindgen glue / Rust runtime / real dependencies.
+
+Then raise the budget deliberately, in the same PR, with the reason in the
+description. `pnpm wasm:report --json` is available if you want to script against it.
+
+### Why the report's byte counts don't match the shipped artifact
+
+They are not supposed to, and the report says so on every run. Attribution needs
+symbol names, and the shipped artifact has none — `wasm-opt` strips the `name`
+section in release, which is a large part of why it is as small as it is.
+
+So the report reads **two** builds: the shipped `pkg/` artifact for authoritative
+totals and the real export list, and an unoptimised `cargo --target
+wasm32-unknown-unknown --release` build for names. **Read the percentages, not the
+byte counts.** It also excludes the `__wbindgen_describe*` functions, which exist
+only so the wasm-bindgen CLI can read type signatures at build time and are deleted
+before shipping — they are nearly half of that build's code section, so counting
+them would make every other number wrong.
 
 ## Troubleshooting
 

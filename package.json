@@ -15,6 +15,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "generate:units": "node scripts/generate-units-catalog.mjs",
+    "wasm:report": "node scripts/wasm-report.mjs --build",
     "typecheck": "pnpm -r --if-present run typecheck",
     "clean": "pnpm -r --if-present run clean"
   },
