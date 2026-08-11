@@ -18,17 +18,23 @@ to hunt for a compatible version yourself.
 git clone https://github.com/tachsin/conv.cat.git
 cd conv.cat
 
-nvm use                 # reads .nvmrc → Node 26.3.0
-pnpm install             # bootstraps every package under apps/* and packages/*
+nvm use                        # reads .nvmrc → Node 26.3.0
+                               # rustup reads rust-toolchain.toml automatically
 
-# rustup reads rust-toolchain.toml automatically → Rust 1.96.0 + rustfmt + clippy
-# + the wasm32-unknown-unknown target
-cargo build
-cargo test
+./scripts/build-all.sh         # installs deps and builds everything, in order
 ```
 
-If you don't have `pnpm` or `rustup` yet: `corepack enable` gets you the pinned `pnpm` from
-`packageManager` in the root `package.json`; [rustup.rs](https://rustup.rs) gets you `rustup`.
+`build-all.sh` verifies your toolchain before it starts and tells you what's missing, so it's
+also the fastest way to find out whether your environment is ready. Run
+`./scripts/build-all.sh --check` before pushing — it runs the same gates as CI (fmt, clippy,
+tests, typecheck, licence boundary).
+
+If you don't have `pnpm`, `rustup` or `wasm-pack` yet: `corepack enable` gets you the pinned
+`pnpm` from `packageManager` in the root `package.json`; [rustup.rs](https://rustup.rs) gets you
+`rustup`; `cargo install wasm-pack` gets you the last one.
+
+Build order, per-piece commands for the inner dev loop, and troubleshooting live in
+[`BUILD.md`](BUILD.md).
 
 Requirements: Node ≥ 26, pnpm 11.21 (via corepack), Rust 1.96 (via rustup). No Docker, no other
 services — everything here runs entirely client-side by design (see the root

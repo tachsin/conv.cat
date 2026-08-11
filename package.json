@@ -9,6 +9,8 @@
   },
   "scripts": {
     "build": "pnpm -r --if-present run build",
+    "build:all": "./scripts/build-all.sh",
+    "check": "./scripts/build-all.sh --check",
     "typecheck": "pnpm -r --if-present run typecheck",
     "clean": "pnpm -r --if-present run clean"
   }

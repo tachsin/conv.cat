@@ -5,6 +5,8 @@ Community and architecture documentation for conv.cat.
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — the Rust-core-to-WASM/native design, the dependency
   boundary between the MIT libraries and the AGPL apps, the media boundary, and how a conversion
   request actually flows.
+- [`BUILD.md`](BUILD.md) — prerequisites, the `build-all` script, the Rust → WASM → JS build
+  order and why it matters, per-piece commands, and troubleshooting.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — setup, the monorepo tour, commit conventions, how to run
   tests, PR expectations.
 - [`adding-a-format.md`](adding-a-format.md) — the complete worked example for adding one

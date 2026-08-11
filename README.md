@@ -57,22 +57,26 @@ target catalog, not what's shipped today; see [Status](#status-of-this-repositor
 ## Quickstart
 
 Toolchains are pinned via `.nvmrc` and `rust-toolchain.toml` — `nvm`/`rustup` pick up the right
-versions automatically.
+versions automatically. You'll also need `pnpm` (`corepack enable`) and `wasm-pack`
+(`cargo install wasm-pack`).
 
 ```bash
-# JS side — one install bootstraps every package in apps/* and packages/*
-pnpm install
-pnpm build
-
-# Rust side — one build covers every crate in crates/*
-cargo build
-cargo test
+./scripts/build-all.sh            # build everything, in dependency order
+./scripts/build-all.sh --check    # ...and run fmt, clippy, tests, licence boundary
 ```
+
+One script, because this repo is two build systems bridged by a WebAssembly artifact and the
+order between them matters: Rust crates → WASM → JS packages → apps. It checks your toolchain
+up front and tells you what's missing rather than failing halfway through.
+
+Run `--check` before pushing — it's the same set of gates CI enforces.
+
+Full details, per-piece commands for the inner dev loop, and troubleshooting:
+[**`docs/BUILD.md`**](docs/BUILD.md).
 
 There is no `pnpm dev` yet — `apps/web` doesn't have a UI to serve until
 [Phase 2](docs/ROADMAP.md#phase-2--web-mvp) lands (see [Status](#status-of-this-repository)).
-This section will be updated with a one-command local dev server the moment that's true; until
-then, `pnpm build`/`cargo test` is how you verify your checkout works.
+Until then, `build-all.sh` is how you verify your checkout is healthy.
 
 ## Architecture
 
