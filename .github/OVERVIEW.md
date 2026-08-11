@@ -4,6 +4,12 @@ GitHub-specific configuration: CI workflows, issue templates, PR template. Nothi
 duplicate logic that belongs in the app/package/crate it targets; workflows call into each
 workspace member's own scripts.
 
+> **Why this file is `OVERVIEW.md` and not `README.md`** — every other workspace member documents
+> itself in a `README.md`, but this directory must not. GitHub picks the README it renders on the
+> repository landing page from `.github/`, then the root, then `docs/` — so a `.github/README.md`
+> silently shadows the root [`README.md`](../README.md), and visitors would land on a page about
+> CI config instead of the project. Do not rename this file back.
+
 ## CI
 
 One workflow exists: `workflows/licence-boundary.yml`, which runs
