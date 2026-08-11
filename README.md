@@ -24,16 +24,11 @@ A recording goes here once `apps/web` has a working UI — tracked as
 rebuild in progress (see [Status](#status-of-this-repository) below); in the meantime, the
 quickstart below gets you a local build to try yourself.
 
-## How is this different from VERT.sh?
+## What makes conv.cat different
 
-[VERT.sh](https://vert.sh) is the closest thing to this project already out there, and it's a
-good reference point, not a rival to dunk on: open source, entirely client-side, same "your files
-never leave your device" premise. If you already like VERT, you'll recognize the shape of what
-we're building. Three things we're doing differently:
-
-- **Breadth.** Not just media and documents — images, video, audio, text/data, units,
-  timezones, and CAD, all through the same engine and the same UI, including the genuinely niche
-  stuff (clothing sizes, cooking measurements, cat/dog years) that a narrower tool wouldn't
+- **Breadth — one tool, not a different site per file type.** Images, video, audio, text/data,
+  units, timezones, and CAD, all through the same engine and the same UI, including the genuinely
+  niche stuff (clothing sizes, cooking measurements, cat/dog years) that a narrower tool wouldn't
   bother with.
 - **Six-locale i18n as a first-class citizen.** English, German, Greek, Spanish, French, and
   Turkish, with translation designed from the start to be a community contribution — not
@@ -41,9 +36,8 @@ we're building. Three things we're doing differently:
 - **One shared Rust core, two runtimes.** `crates/conv-core` compiles to WebAssembly for the web
   app *and* links natively into the desktop app — one implementation, not two that have to be
   kept in sync by hand. See [ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
-If this project reads like "VERT but bigger," that's a fair read of the ambition. The bet is that
-breadth, translation, and one engine across web and desktop are worth the extra scope.
+- **Nothing is uploaded, and the source proves it.** Local-first isn't a policy page here; it's
+  an architectural property you can verify.
 
 ## Supported formats
 

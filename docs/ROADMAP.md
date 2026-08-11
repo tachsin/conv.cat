@@ -53,7 +53,7 @@ app depends on — deliberately built and reviewed before ten converters are wri
 
 ## Phase 2 — Web MVP
 
-A single VERT-style page: drag a file in, pick a target format, convert with visible progress,
+A single-page converter: drag a file in, pick a target format, convert with visible progress,
 download. English only. No per-pair landing pages at launch — that was a legacy SEO strategy that
 produced a documented duplicate-content problem, and bringing it back (if it comes back at all)
 is a deliberate decision, not a default.
