@@ -1,0 +1,35 @@
+# Agent / local tooling scaffolding — must never reach this public repo
+.agentsroom/
+.claude/
+.mcp.json
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node / pnpm / Next.js (conv-next)
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Rust (conv-rust)
+target/
+
+# Editors
+.idea/
+*.swp
