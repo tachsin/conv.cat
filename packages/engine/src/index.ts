@@ -12,6 +12,7 @@ import type { ConvEngine, ConvertOptions } from './types.js';
 export type { ConvEngine, ConvertOptions, ConvertErrorKind, EngineBackendKind, FormatInfo } from './types.js';
 export { ConvertError } from './errors.js';
 export { detectBackend } from './backend.js';
+export { convertUnit } from './units.js';
 
 let enginePromise: Promise<ConvEngine> | undefined;
 

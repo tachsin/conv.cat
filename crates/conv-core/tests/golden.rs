@@ -10,7 +10,8 @@
 
 mod support;
 
-use conv_core::Format;
+use conv_core::formats::units::generated;
+use conv_core::{ConvertOptions, Format};
 
 // ─── text / plain_text ──────────────────────────────────────────────────────
 //
@@ -54,19 +55,357 @@ fn plain_text_identity_non_utf8_bytes_pass_through_unchanged() {
     );
 }
 
-// ─── malformed-input corpus ─────────────────────────────────────────────────
+// ─── units ───────────────────────────────────────────────────────────────────
 //
-// No `.bad` fixtures exist yet, and that's expected rather than a gap: `IdentityConverter`
-// performs no parsing at all, so it has no malformed-input failure mode to exercise — every byte
-// sequence is "valid" to it by definition. The first converter that actually parses its input
-// (image conversion is next, backlog ticket f737b331) must add at least one `.bad` fixture here
-// and a call to `support::assert_malformed_produces_typed_error`, per
-// `docs/adding-a-format.md#step-4--golden-file-tests`. `assert_no_stray_files` below fails the
-// build if a `.bad` fixture ever gets committed without a matching test, so this corpus can't
-// silently rot once real fixtures land.
+// See `crates/conv-core/src/formats/units/mod.rs` for the wire protocol
+// (`"<from_unit_id>|<to_unit_id>|<value>"` as UTF-8 text) and why units are modeled as one
+// `Format` self-pair per *category* rather than per unit. Golden pairs below are picked to prove
+// each of the five conversion models actually works — in particular the two the legacy app never
+// implemented despite shipping catalog data for them: temperature's **offset**, not just scale
+// (`UnitConversion::Affine`), and fuel_consumption's **reciprocal** math
+// (`UnitConversion::Reciprocal`). See `packages/data/src/units/README.md` for that history.
+
+#[test]
+fn units_length_meter_to_foot() {
+    support::run_golden_case(
+        "units/length/meter_to_foot.input.txt",
+        "units/length/meter_to_foot.golden.txt",
+        Format::UnitsLength,
+        Format::UnitsLength,
+    );
+}
+
+#[test]
+fn units_length_foot_to_meter() {
+    support::run_golden_case(
+        "units/length/foot_to_meter.input.txt",
+        "units/length/foot_to_meter.golden.txt",
+        Format::UnitsLength,
+        Format::UnitsLength,
+    );
+}
+
+#[test]
+fn units_length_round_trip_stays_within_tolerance_of_the_original_value() {
+    // Not a golden-file case (the point is the *relative* error, not a specific byte-exact
+    // output) — see `formats::units` module docs' "Precision" section for the tolerance
+    // rationale. meter -> foot -> meter through two independent Linear hops.
+    let original = 1.234_f64;
+
+    let to_feet = format!("meter|foot|{original}");
+    let feet_bytes = conv_core::convert(
+        to_feet.as_bytes(),
+        Format::UnitsLength,
+        Format::UnitsLength,
+        &ConvertOptions::default(),
+    )
+    .unwrap();
+    let feet_value: f64 = String::from_utf8(feet_bytes).unwrap().parse().unwrap();
+
+    let back = format!("foot|meter|{feet_value}");
+    let back_bytes = conv_core::convert(
+        back.as_bytes(),
+        Format::UnitsLength,
+        Format::UnitsLength,
+        &ConvertOptions::default(),
+    )
+    .unwrap();
+    let back_value: f64 = String::from_utf8(back_bytes).unwrap().parse().unwrap();
+
+    let relative_error = ((back_value - original) / original).abs();
+    assert!(
+        relative_error < 1e-9,
+        "meter -> foot -> meter drifted too far: {original} -> {feet_value} -> {back_value} \
+         (relative error {relative_error})"
+    );
+}
+
+#[test]
+fn units_temperature_fahrenheit_to_celsius_freezing_point() {
+    support::run_golden_case(
+        "units/temperature/fahrenheit_to_celsius.input.txt",
+        "units/temperature/fahrenheit_to_celsius.golden.txt",
+        Format::UnitsTemperature,
+        Format::UnitsTemperature,
+    );
+}
+
+#[test]
+fn units_temperature_fahrenheit_to_celsius_boiling_point() {
+    support::run_golden_case(
+        "units/temperature/fahrenheit_212_to_celsius.input.txt",
+        "units/temperature/fahrenheit_212_to_celsius.golden.txt",
+        Format::UnitsTemperature,
+        Format::UnitsTemperature,
+    );
+}
+
+#[test]
+fn units_temperature_celsius_to_kelvin_proves_the_offset() {
+    // 0 -> 273.15, not 0 -> 0: this is the specific case that makes temperature the "offset, not
+    // just scale" example the units vertical-slice ticket asked to get right, and which the
+    // legacy app never actually implemented (see packages/data/src/units/README.md).
+    support::run_golden_case(
+        "units/temperature/celsius_to_kelvin.input.txt",
+        "units/temperature/celsius_to_kelvin.golden.txt",
+        Format::UnitsTemperature,
+        Format::UnitsTemperature,
+    );
+}
+
+#[test]
+fn units_fuel_consumption_mpg_us_to_liter_per_100km_proves_the_reciprocal() {
+    // mpg_us's `k = 235.215`, so `mpg_us|liter_per_100km|235.215` should land exactly on `1` —
+    // proves `UnitConversion::Reciprocal`'s `k / x` math, not just linear scaling.
+    support::run_golden_case(
+        "units/fuel_consumption/mpg_us_to_l100km.input.txt",
+        "units/fuel_consumption/mpg_us_to_l100km.golden.txt",
+        Format::UnitsFuelConsumption,
+        Format::UnitsFuelConsumption,
+    );
+}
+
+#[test]
+fn units_life_age_dog_at_an_exact_curve_knot() {
+    // age 3 is an exact DOG_CURVE knot (28 human years) — see
+    // `crates/conv-core/src/formats/units/life_age.rs`.
+    support::run_golden_case(
+        "units/life_age/dog_to_human.input.txt",
+        "units/life_age/dog_to_human.golden.txt",
+        Format::UnitsLifeAge,
+        Format::UnitsLifeAge,
+    );
+}
+
+#[test]
+fn units_life_age_hamster_lifespan_ratio() {
+    support::run_golden_case(
+        "units/life_age/hamster_to_human.input.txt",
+        "units/life_age/hamster_to_human.golden.txt",
+        Format::UnitsLifeAge,
+        Format::UnitsLifeAge,
+    );
+}
+
+#[test]
+fn units_clothing_size_numeric_chart_lookup_to_letter() {
+    support::run_golden_case(
+        "units/clothing_size/numeric_to_letter.input.txt",
+        "units/clothing_size/numeric_to_letter.golden.txt",
+        Format::UnitsClothingSize,
+        Format::UnitsClothingSize,
+    );
+}
+
+#[test]
+fn units_clothing_size_letter_label_input_to_numeric() {
+    // Proves the wire payload's value field actually round-trips *text*, not just numbers — the
+    // one category in scope where that matters.
+    support::run_golden_case(
+        "units/clothing_size/letter_to_numeric.input.txt",
+        "units/clothing_size/letter_to_numeric.golden.txt",
+        Format::UnitsClothingSize,
+        Format::UnitsClothingSize,
+    );
+}
+
+#[test]
+fn unit_round_trips_stay_within_tolerance_across_every_generic_model_category() {
+    // The full-breadth proof that "every unit in scope converts correctly", per this ticket's
+    // acceptance criteria — every unit in every table-driven category (`length`, `mass`,
+    // `volume`, `cooking`, `temperature`, `fuel_consumption`) does a self round trip
+    // (`unit -> SI -> unit`) and must land within 1e-9 relative error of where it started.
+    // `life_age`/`clothing_size` aren't table-driven the same way and have their own targeted
+    // tests above. See `formats::units` module docs' "Precision" section for why 1e-9.
+    const PROBE_VALUES: &[f64] = &[1.0, 42.5, -7.25, 1000.0, 0.001];
+
+    let mut checked = 0usize;
+    for table in generated::CATEGORIES {
+        for unit in table.units {
+            if matches!(
+                unit.conversion,
+                conv_core::formats::units::catalog::UnitConversion::Unconvertible
+            ) {
+                continue; // no conversion data to round-trip — see the category's honest gaps.
+            }
+
+            for &value in PROBE_VALUES {
+                // Reciprocal units are undefined at 0 and blow up near it — skip probe values
+                // that would divide by (near-)zero for this specific unit's `k`, rather than
+                // asserting a meaningless huge relative error.
+                if let conv_core::formats::units::catalog::UnitConversion::Reciprocal { .. } =
+                    unit.conversion
+                {
+                    if value == 0.0 {
+                        continue;
+                    }
+                }
+
+                let payload = format!("{}|{}|{value}", unit.id, unit.id);
+                let format = format_for_category(table.category_id);
+                let output = conv_core::convert(
+                    payload.as_bytes(),
+                    format,
+                    format,
+                    &ConvertOptions::default(),
+                )
+                .unwrap_or_else(|err| {
+                    panic!(
+                        "{}/{} round trip at {value} failed: {err:?}",
+                        table.category_id, unit.id
+                    )
+                });
+                let result: f64 = String::from_utf8(output).unwrap().parse().unwrap();
+                assert_eq!(
+                    result, value,
+                    "{}/{} identity self-conversion should be exact (from_unit == to_unit \
+                     short-circuits before any math runs)",
+                    table.category_id, unit.id
+                );
+
+                // Now the real round trip: unit -> SI -> unit, via a *different* probe pairing so
+                // real arithmetic actually runs (from_unit == to_unit above only proved the
+                // short-circuit path, not the math).
+                let si_unit = table
+                    .units
+                    .iter()
+                    .find(|u| {
+                        !matches!(
+                            u.conversion,
+                            conv_core::formats::units::catalog::UnitConversion::Unconvertible
+                        )
+                    })
+                    .expect("every in-scope category has at least one convertible unit");
+                if si_unit.id == unit.id {
+                    continue; // nothing to compare against in this category
+                }
+
+                let to_si_payload = format!("{}|{}|{value}", unit.id, si_unit.id);
+                let si_output = conv_core::convert(
+                    to_si_payload.as_bytes(),
+                    format,
+                    format,
+                    &ConvertOptions::default(),
+                )
+                .unwrap_or_else(|err| {
+                    panic!(
+                        "{}/{} -> {} failed at {value}: {err:?}",
+                        table.category_id, unit.id, si_unit.id
+                    )
+                });
+                let si_value: f64 = String::from_utf8(si_output).unwrap().parse().unwrap();
+                if si_value == 0.0 {
+                    continue; // can't compute a meaningful relative error against zero
+                }
+
+                let back_payload = format!("{}|{}|{si_value}", si_unit.id, unit.id);
+                let back_output = conv_core::convert(
+                    back_payload.as_bytes(),
+                    format,
+                    format,
+                    &ConvertOptions::default(),
+                )
+                .unwrap_or_else(|err| {
+                    panic!(
+                        "{}/{} <- {} failed at {si_value}: {err:?}",
+                        table.category_id, unit.id, si_unit.id
+                    )
+                });
+                let back_value: f64 = String::from_utf8(back_output).unwrap().parse().unwrap();
+
+                let relative_error = ((back_value - value) / value).abs();
+                assert!(
+                    relative_error < 1e-9,
+                    "{}/{} round trip via {} drifted too far: {value} -> {si_value} -> \
+                     {back_value} (relative error {relative_error})",
+                    table.category_id,
+                    unit.id,
+                    si_unit.id
+                );
+                checked += 1;
+            }
+        }
+    }
+
+    assert!(
+        checked > 100,
+        "expected to have exercised well over 100 unit round trips, only checked {checked} — \
+         did the generated catalog shrink unexpectedly?"
+    );
+}
+
+fn format_for_category(category_id: &str) -> Format {
+    match category_id {
+        "length" => Format::UnitsLength,
+        "mass" => Format::UnitsMass,
+        "volume" => Format::UnitsVolume,
+        "cooking" => Format::UnitsCooking,
+        "temperature" => Format::UnitsTemperature,
+        "fuel_consumption" => Format::UnitsFuelConsumption,
+        other => panic!("unexpected generated category id in golden.rs test: {other}"),
+    }
+}
+
+// ─── malformed-input / unsupported-feature corpus ────────────────────────────
+//
+// `IdentityConverter` (above) performs no parsing, so it has no malformed-input failure mode —
+// units is the first converter in this crate that actually does. Every `.bad` fixture here must
+// make the converter return a typed `ConvertError`, never panic or hang — proven per-fixture via
+// `support::assert_malformed_produces_typed_error`, which is deliberately agnostic about *which*
+// `ConvertError` variant comes back (`MalformedInput` for a bad payload shape,
+// `UnsupportedFeature` for an honest catalog gap — both are "typed error, not a crash").
 //
 // The malformed-input harness itself (panic containment + hang timeout) is proven independently
 // of any real parser in `tests/golden_harness_selftest.rs`, using test-double converters.
+
+#[test]
+fn units_wrong_field_count_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "units/length/wrong_field_count.bad",
+        Format::UnitsLength,
+        Format::UnitsLength,
+    );
+}
+
+#[test]
+fn units_non_numeric_value_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "units/length/non_numeric_value.bad",
+        Format::UnitsLength,
+        Format::UnitsLength,
+    );
+}
+
+#[test]
+fn units_temperature_honest_gap_unit_is_a_typed_error_not_a_fabricated_result() {
+    // gas_mark has no to_kelvin/from_kelvin formula in the legacy catalog either — see
+    // packages/data/src/units/README.md. Must return UnsupportedFeature, never a made-up number.
+    support::assert_malformed_produces_typed_error(
+        "units/temperature/gas_mark_gap.bad",
+        Format::UnitsTemperature,
+        Format::UnitsTemperature,
+    );
+}
+
+#[test]
+fn units_fuel_consumption_honest_gap_unit_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "units/fuel_consumption/undefined_unit_gap.bad",
+        Format::UnitsFuelConsumption,
+        Format::UnitsFuelConsumption,
+    );
+}
+
+#[test]
+fn units_clothing_size_kids_sizing_honest_gap_is_a_typed_error() {
+    // The legacy chart-based logic has no data for kids' sizing — see
+    // packages/data/src/units/README.md.
+    support::assert_malformed_produces_typed_error(
+        "units/clothing_size/kids_gap.bad",
+        Format::UnitsClothingSize,
+        Format::UnitsClothingSize,
+    );
+}
 
 // ─── corpus hygiene ──────────────────────────────────────────────────────────
 
@@ -80,5 +419,30 @@ fn fixtures_tree_has_no_stray_or_orphaned_files() {
         "text/plain_text/empty.golden.txt",
         "text/plain_text/non_utf8_bytes.input.txt",
         "text/plain_text/non_utf8_bytes.golden.txt",
+        "units/length/meter_to_foot.input.txt",
+        "units/length/meter_to_foot.golden.txt",
+        "units/length/foot_to_meter.input.txt",
+        "units/length/foot_to_meter.golden.txt",
+        "units/length/wrong_field_count.bad",
+        "units/length/non_numeric_value.bad",
+        "units/temperature/fahrenheit_to_celsius.input.txt",
+        "units/temperature/fahrenheit_to_celsius.golden.txt",
+        "units/temperature/fahrenheit_212_to_celsius.input.txt",
+        "units/temperature/fahrenheit_212_to_celsius.golden.txt",
+        "units/temperature/celsius_to_kelvin.input.txt",
+        "units/temperature/celsius_to_kelvin.golden.txt",
+        "units/temperature/gas_mark_gap.bad",
+        "units/fuel_consumption/mpg_us_to_l100km.input.txt",
+        "units/fuel_consumption/mpg_us_to_l100km.golden.txt",
+        "units/fuel_consumption/undefined_unit_gap.bad",
+        "units/life_age/dog_to_human.input.txt",
+        "units/life_age/dog_to_human.golden.txt",
+        "units/life_age/hamster_to_human.input.txt",
+        "units/life_age/hamster_to_human.golden.txt",
+        "units/clothing_size/numeric_to_letter.input.txt",
+        "units/clothing_size/numeric_to_letter.golden.txt",
+        "units/clothing_size/letter_to_numeric.input.txt",
+        "units/clothing_size/letter_to_numeric.golden.txt",
+        "units/clothing_size/kids_gap.bad",
     ]);
 }

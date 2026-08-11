@@ -28,6 +28,13 @@ importers:
         version: 7.0.2
 
   apps/web:
+    dependencies:
+      '@conv.cat/data':
+        specifier: workspace:*
+        version: link:../../packages/data
+      '@conv.cat/engine':
+        specifier: workspace:*
+        version: link:../../packages/engine
     devDependencies:
       typescript:
         specifier: ^7.0.2
@@ -41,6 +48,9 @@ importers:
 
   packages/engine:
     dependencies:
+      '@conv.cat/data':
+        specifier: workspace:*
+        version: link:../data
       '@tauri-apps/api':
         specifier: ^2.9.0
         version: 2.11.1

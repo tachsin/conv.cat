@@ -14,6 +14,7 @@
     "check": "./scripts/build-all.sh --check",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "generate:units": "node scripts/generate-units-catalog.mjs",
     "typecheck": "pnpm -r --if-present run typecheck",
     "clean": "pnpm -r --if-present run clean"
   },

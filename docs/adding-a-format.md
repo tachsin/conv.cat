@@ -19,15 +19,27 @@ instead — wrapping ffmpeg in Rust is explicitly out of scope and that PR will 
 > **A note on timing.** The `Converter` trait and format registry described below have landed
 > (backlog ticket "conv-core foundation") — `crates/conv-core/src/converter.rs`'s rustdoc on
 > `Converter` is the authoritative version if anything here has drifted; please send a docs PR to
-> fix the drift rather than working around it silently. No real format converters exist yet —
-> only a placeholder identity conversion used to exercise the pipeline in tests — so this doc's
-> QOI walkthrough is still the best template for the first real one.
+> fix the drift rather than working around it silently. Units is the first real category to land
+> (backlog ticket "First vertical slice: port units to conv-core" — a representative 8-category
+> subset) — see the callout below for why its walkthrough isn't this one. No image, text/data, or
+> CAD converter exists yet, so this doc's QOI walkthrough is still the best template for those.
 
 ## Worked example: adding QOI encoding to the image category
 
 We'll walk through adding [QOI](https://qoiformat.org/) (Quite OK Image) as an output format for
 the image category — a real, currently-missing format, small enough to show end to end. The same
-six steps apply to any format in any category (units, images, text/data, CAD).
+six steps apply to any file-shaped format in any category (images, text/data, CAD).
+
+> **Units — and any other non-file-shaped category — don't follow this walkthrough as-is.** The
+> `Converter` trait is `&[u8] -> Vec<u8>`, built around file bytes in, file bytes out. A unit
+> conversion is `(value, from_unit, to_unit) -> value` — there's no file to decode. Rather than
+> bending this walkthrough's steps to fit, units established its own convention: one `Format`
+> variant per *category* (not per unit — the legacy catalog's 977 units would mean 977 hand-written
+> variants), registered as a self-pair, with the actual from-unit/to-unit identity carried in a
+> small hand-parsed UTF-8 text payload instead of `Format` itself. Full writeup, including why, is
+> in `crates/conv-core/src/formats/units/mod.rs`'s module docs — read that first if your category
+> is numeric/structured data rather than a file format. **Timezones** (Phase 3) is the next
+> category expected to need this pattern rather than the QOI one.
 
 ### Step 1 — Decide the format id and where the code lives
 

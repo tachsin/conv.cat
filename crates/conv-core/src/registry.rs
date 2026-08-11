@@ -43,6 +43,36 @@ pub enum Format {
     /// to end before any real format lands — see [`crate::formats::identity`]. Not part of the
     /// target format catalog in the root README; do not build real functionality on top of it.
     PlainText,
+
+    // ─── Units — one variant per category, not per unit ────────────────────────────────────
+    //
+    // See `crate::formats::units` module docs for why: units aren't file-shaped, so the actual
+    // from-unit/to-unit identity travels in the payload bytes, not in `Format`. Each is
+    // registered as a self-pair (e.g. `UnitsLength -> UnitsLength`) in `default_registry` below.
+    // `Format::id()` follows `units_<category_id>` mechanically — keep that convention if a
+    // future category is added here.
+    /// Length (meter, foot, light-year, …).
+    UnitsLength,
+    /// Mass (kilogram, pound, …).
+    UnitsMass,
+    /// Volume (liter, gallon, …).
+    UnitsVolume,
+    /// Cooking measurements (cup, tablespoon, pinch, …) — genuinely linear, kept as its own
+    /// category (not folded into `UnitsVolume`) to match the legacy catalog and the root
+    /// README's "genuinely niche stuff" pitch.
+    UnitsCooking,
+    /// Temperature (Celsius, Fahrenheit, Kelvin, …) — affine, not linear-through-origin; see
+    /// [`crate::formats::units::catalog::UnitConversion::Affine`].
+    UnitsTemperature,
+    /// Fuel consumption (L/100km, mpg, km/L, …) — mixes linear and reciprocal units; see
+    /// [`crate::formats::units::catalog::UnitConversion::Reciprocal`].
+    UnitsFuelConsumption,
+    /// Life age — species years ⇄ human years, including cat/dog years. Piecewise/lifespan
+    /// algorithm, not a factor table; see [`crate::formats::units::life_age`].
+    UnitsLifeAge,
+    /// Clothing size — chart-based lookup with text-label values as well as numbers; see
+    /// [`crate::formats::units::clothing_size`].
+    UnitsClothingSize,
 }
 
 impl Format {
@@ -51,6 +81,14 @@ impl Format {
     pub fn id(&self) -> &'static str {
         match self {
             Format::PlainText => "plain_text",
+            Format::UnitsLength => "units_length",
+            Format::UnitsMass => "units_mass",
+            Format::UnitsVolume => "units_volume",
+            Format::UnitsCooking => "units_cooking",
+            Format::UnitsTemperature => "units_temperature",
+            Format::UnitsFuelConsumption => "units_fuel_consumption",
+            Format::UnitsLifeAge => "units_life_age",
+            Format::UnitsClothingSize => "units_clothing_size",
         }
     }
 
@@ -58,22 +96,52 @@ impl Format {
     pub fn category(&self) -> Category {
         match self {
             Format::PlainText => Category::Text,
+            Format::UnitsLength
+            | Format::UnitsMass
+            | Format::UnitsVolume
+            | Format::UnitsCooking
+            | Format::UnitsTemperature
+            | Format::UnitsFuelConsumption
+            | Format::UnitsLifeAge
+            | Format::UnitsClothingSize => Category::Units,
         }
     }
 
     /// The MIME type used when this format is read from or written to a browser `Blob`/file
     /// input, or exposed via HTTP.
+    ///
+    /// Units formats aren't real files — there is no browser `Blob` or HTTP body with this MIME
+    /// type in practice — but every [`Format`] carries one by convention (see this crate's
+    /// module docs on units being "not a file format, but modeled the same way"), so this is a
+    /// single conv.cat-internal placeholder rather than something meaningful to a real HTTP
+    /// client.
     pub fn mime(&self) -> &'static str {
         match self {
             Format::PlainText => "text/plain",
+            Format::UnitsLength
+            | Format::UnitsMass
+            | Format::UnitsVolume
+            | Format::UnitsCooking
+            | Format::UnitsTemperature
+            | Format::UnitsFuelConsumption
+            | Format::UnitsLifeAge
+            | Format::UnitsClothingSize => "application/x-conv-unit",
         }
     }
 
     /// File extensions (without the leading dot) commonly used for this format, most preferred
-    /// first.
+    /// first. Empty for every units format — they have no file extension.
     pub fn extensions(&self) -> &'static [&'static str] {
         match self {
             Format::PlainText => &["txt"],
+            Format::UnitsLength
+            | Format::UnitsMass
+            | Format::UnitsVolume
+            | Format::UnitsCooking
+            | Format::UnitsTemperature
+            | Format::UnitsFuelConsumption
+            | Format::UnitsLifeAge
+            | Format::UnitsClothingSize => &[],
         }
     }
 
@@ -81,10 +149,21 @@ impl Format {
     ///
     /// This describes the format itself, independent of which specific pairs are registered —
     /// e.g. HEIC is decode-only in conv.cat's target catalog, so `can_write` would be `false`
-    /// for it even once a `Heic -> Png` converter exists.
+    /// for it even once a `Heic -> Png` converter exists. Every units format is both readable and
+    /// writable at the `Format` level even though individual *units* within a category can be
+    /// [`crate::formats::units::catalog::UnitConversion::Unconvertible`] — that finer-grained
+    /// support is enforced per-request by `UnitsConverter`, not at this level.
     pub fn can_read(&self) -> bool {
         match self {
             Format::PlainText => true,
+            Format::UnitsLength
+            | Format::UnitsMass
+            | Format::UnitsVolume
+            | Format::UnitsCooking
+            | Format::UnitsTemperature
+            | Format::UnitsFuelConsumption
+            | Format::UnitsLifeAge
+            | Format::UnitsClothingSize => true,
         }
     }
 
@@ -92,6 +171,14 @@ impl Format {
     pub fn can_write(&self) -> bool {
         match self {
             Format::PlainText => true,
+            Format::UnitsLength
+            | Format::UnitsMass
+            | Format::UnitsVolume
+            | Format::UnitsCooking
+            | Format::UnitsTemperature
+            | Format::UnitsFuelConsumption
+            | Format::UnitsLifeAge
+            | Format::UnitsClothingSize => true,
         }
     }
 }

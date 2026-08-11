@@ -1,0 +1,265 @@
+{
+  "id": "volume",
+  "name": "Volume",
+  "si_base": "cubic_meter",
+  "units": [
+    {
+      "id": "barrel_oil",
+      "name": "Barrel (oil)",
+      "symbol": "bbl",
+      "factor_to_si": 0.158987
+    },
+    {
+      "id": "barrel_us",
+      "name": "Barrel (US liquid)",
+      "symbol": "fl bl",
+      "factor_to_si": 0.11924
+    },
+    {
+      "id": "bushel_us",
+      "name": "Bushel (US)",
+      "symbol": "bu",
+      "factor_to_si": 0.035239
+    },
+    {
+      "id": "centiliter",
+      "name": "Centiliter",
+      "symbol": "cL",
+      "factor_to_si": 1e-05
+    },
+    {
+      "id": "cord",
+      "name": "Cord (firewood)",
+      "symbol": "cd",
+      "factor_to_si": 3.62456
+    },
+    {
+      "id": "cubic_centimeter",
+      "name": "Cubic Centimeter",
+      "symbol": "cm³",
+      "factor_to_si": 1e-06
+    },
+    {
+      "id": "cubic_foot",
+      "name": "Cubic Foot",
+      "symbol": "ft³",
+      "factor_to_si": 0.0283168
+    },
+    {
+      "id": "cubic_inch",
+      "name": "Cubic Inch",
+      "symbol": "in³",
+      "factor_to_si": 1.63871e-05
+    },
+    {
+      "id": "cubic_kilometer",
+      "name": "Cubic Kilometer",
+      "symbol": "km³",
+      "factor_to_si": 1000000000
+    },
+    {
+      "id": "cubic_meter",
+      "name": "Cubic Meter",
+      "symbol": "m³",
+      "factor_to_si": 1
+    },
+    {
+      "id": "cubic_mile",
+      "name": "Cubic Mile",
+      "symbol": "mi³",
+      "factor_to_si": 4168180000
+    },
+    {
+      "id": "cubic_yard",
+      "name": "Cubic Yard",
+      "symbol": "yd³",
+      "factor_to_si": 0.764555
+    },
+    {
+      "id": "cup_us",
+      "name": "Cup (US)",
+      "symbol": "cup",
+      "factor_to_si": 0.000236588
+    },
+    {
+      "id": "deciliter",
+      "name": "Deciliter",
+      "symbol": "dL",
+      "factor_to_si": 0.0001
+    },
+    {
+      "id": "drop",
+      "name": "Drop (medical)",
+      "symbol": "gtt",
+      "factor_to_si": 5e-08
+    },
+    {
+      "id": "firkin",
+      "name": "Firkin (UK beer)",
+      "symbol": "firkin",
+      "factor_to_si": 0.034069
+    },
+    {
+      "id": "fluid_ounce_uk",
+      "name": "Fluid Ounce (Imperial)",
+      "symbol": "imp fl oz",
+      "factor_to_si": 2.84131e-05
+    },
+    {
+      "id": "fluid_ounce_us",
+      "name": "Fluid Ounce (US)",
+      "symbol": "fl oz",
+      "factor_to_si": 2.95735e-05
+    },
+    {
+      "id": "gallon_uk",
+      "name": "Gallon (Imperial)",
+      "symbol": "imp gal",
+      "factor_to_si": 0.00454609
+    },
+    {
+      "id": "gallon_us",
+      "name": "Gallon (US)",
+      "symbol": "gal",
+      "factor_to_si": 0.00378541
+    },
+    {
+      "id": "gill_uk",
+      "name": "Gill (Imperial)",
+      "symbol": "imp gi",
+      "factor_to_si": 0.000142065
+    },
+    {
+      "id": "gill_us",
+      "name": "Gill (US)",
+      "symbol": "gi",
+      "factor_to_si": 0.000118294
+    },
+    {
+      "id": "hogshead",
+      "name": "Hogshead (US)",
+      "symbol": "hhd",
+      "factor_to_si": 0.238481
+    },
+    {
+      "id": "lambda",
+      "name": "Lambda (μL)",
+      "symbol": "λ",
+      "factor_to_si": 1e-09
+    },
+    {
+      "id": "liter",
+      "name": "Liter",
+      "symbol": "L",
+      "factor_to_si": 0.001
+    },
+    {
+      "id": "milliliter",
+      "name": "Milliliter",
+      "symbol": "mL",
+      "factor_to_si": 1e-06
+    },
+    {
+      "id": "peck",
+      "name": "Peck (US)",
+      "symbol": "pk",
+      "factor_to_si": 0.00880977
+    },
+    {
+      "id": "pint_uk",
+      "name": "Pint (Imperial)",
+      "symbol": "imp pt",
+      "factor_to_si": 0.000568261
+    },
+    {
+      "id": "pint_us",
+      "name": "Pint (US)",
+      "symbol": "pt",
+      "factor_to_si": 0.000473176
+    },
+    {
+      "id": "quart_us",
+      "name": "Quart (US)",
+      "symbol": "qt",
+      "factor_to_si": 0.000946353
+    },
+    {
+      "id": "sheng_chinese",
+      "name": "Shēng (Chinese)",
+      "symbol": "升",
+      "factor_to_si": 0.001
+    },
+    {
+      "id": "sho_japanese",
+      "name": "Shō (Japanese)",
+      "symbol": "升",
+      "factor_to_si": 0.001804
+    },
+    {
+      "id": "tablespoon_us",
+      "name": "Tablespoon (US)",
+      "symbol": "tbsp",
+      "factor_to_si": 1.47868e-05
+    },
+    {
+      "id": "teaspoon_us",
+      "name": "Teaspoon (US)",
+      "symbol": "tsp",
+      "factor_to_si": 4.92892e-06
+    },
+    {
+      "id": "cubic_millimeter",
+      "name": "Cubic millimeter",
+      "symbol": "mm³",
+      "factor_to_si": 1e-09
+    },
+    {
+      "id": "cubic_decimeter",
+      "name": "Cubic decimeter",
+      "symbol": "dm³",
+      "factor_to_si": 0.001
+    },
+    {
+      "id": "fluid_dram",
+      "name": "Fluid dram",
+      "symbol": "fl dr",
+      "factor_to_si": 0.00369669
+    },
+    {
+      "id": "minim",
+      "name": "Minim",
+      "symbol": "min",
+      "factor_to_si": 6.161152e-08
+    },
+    {
+      "id": "board_foot",
+      "name": "Board foot",
+      "symbol": "fbm",
+      "factor_to_si": 0.00235974
+    },
+    {
+      "id": "register_ton",
+      "name": "Register ton",
+      "symbol": "RT",
+      "factor_to_si": 2.83168
+    },
+    {
+      "id": "acre_foot",
+      "name": "Acre-foot",
+      "symbol": "ac·ft",
+      "factor_to_si": 1233.48
+    },
+    {
+      "id": "beer_barrel_us",
+      "name": "Beer barrel (US)",
+      "symbol": "bbl beer",
+      "factor_to_si": 0.1173478
+    },
+    {
+      "id": "oil_barrel",
+      "name": "Oil barrel",
+      "symbol": "bbl oil",
+      "factor_to_si": 0.1589873
+    }
+  ]
+}

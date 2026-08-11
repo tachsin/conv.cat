@@ -1,0 +1,307 @@
+{
+  "id": "length",
+  "name": "Length",
+  "si_base": "meter",
+  "units": [
+    {
+      "id": "angstrom",
+      "name": "Ångström",
+      "symbol": "Å",
+      "factor_to_si": 1e-10
+    },
+    {
+      "id": "astronomical_unit",
+      "name": "Astronomical Unit",
+      "symbol": "AU",
+      "factor_to_si": 149600000000
+    },
+    {
+      "id": "barleycorn",
+      "name": "Barleycorn",
+      "symbol": "Bc",
+      "factor_to_si": 0.008467
+    },
+    {
+      "id": "centimeter",
+      "name": "Centimeter",
+      "symbol": "cm",
+      "factor_to_si": 0.01
+    },
+    {
+      "id": "chain",
+      "name": "Chain",
+      "symbol": "ch",
+      "factor_to_si": 20.1168
+    },
+    {
+      "id": "cubit",
+      "name": "Cubit (ancient)",
+      "symbol": "cbt",
+      "factor_to_si": 0.4572
+    },
+    {
+      "id": "cun_chinese",
+      "name": "Cun (Chinese inch)",
+      "symbol": "cun",
+      "factor_to_si": 0.0333
+    },
+    {
+      "id": "fathom",
+      "name": "Fathom",
+      "symbol": "ftm",
+      "factor_to_si": 1.8288
+    },
+    {
+      "id": "femtometer",
+      "name": "Femtometer",
+      "symbol": "fm",
+      "factor_to_si": 1e-15
+    },
+    {
+      "id": "foot",
+      "name": "Foot",
+      "symbol": "ft",
+      "factor_to_si": 0.3048
+    },
+    {
+      "id": "furlong",
+      "name": "Furlong",
+      "symbol": "fur",
+      "factor_to_si": 201.168
+    },
+    {
+      "id": "hand",
+      "name": "Hand",
+      "symbol": "hh",
+      "factor_to_si": 0.1016
+    },
+    {
+      "id": "inch",
+      "name": "Inch",
+      "symbol": "in",
+      "factor_to_si": 0.0254
+    },
+    {
+      "id": "kilometer",
+      "name": "Kilometer",
+      "symbol": "km",
+      "factor_to_si": 1000
+    },
+    {
+      "id": "kiloparsec",
+      "name": "Kiloparsec",
+      "symbol": "kpc",
+      "factor_to_si": 30860000000000000000
+    },
+    {
+      "id": "league",
+      "name": "League",
+      "symbol": "lea",
+      "factor_to_si": 4828.032
+    },
+    {
+      "id": "li_chinese",
+      "name": "Li (Chinese)",
+      "symbol": "li",
+      "factor_to_si": 500
+    },
+    {
+      "id": "light_year",
+      "name": "Light Year",
+      "symbol": "ly",
+      "factor_to_si": 9461000000000000
+    },
+    {
+      "id": "megaparsec",
+      "name": "Megaparsec",
+      "symbol": "Mpc",
+      "factor_to_si": 3.086e+22
+    },
+    {
+      "id": "meter",
+      "name": "Meter",
+      "symbol": "m",
+      "factor_to_si": 1
+    },
+    {
+      "id": "micrometer",
+      "name": "Micrometer",
+      "symbol": "μm",
+      "factor_to_si": 1e-06
+    },
+    {
+      "id": "mile",
+      "name": "Mile",
+      "symbol": "mi",
+      "factor_to_si": 1609.344
+    },
+    {
+      "id": "millimeter",
+      "name": "Millimeter",
+      "symbol": "mm",
+      "factor_to_si": 0.001
+    },
+    {
+      "id": "nanometer",
+      "name": "Nanometer",
+      "symbol": "nm",
+      "factor_to_si": 1e-09
+    },
+    {
+      "id": "nautical_mile",
+      "name": "Nautical Mile",
+      "symbol": "nmi",
+      "factor_to_si": 1852
+    },
+    {
+      "id": "parsec",
+      "name": "Parsec",
+      "symbol": "pc",
+      "factor_to_si": 30860000000000000
+    },
+    {
+      "id": "pica",
+      "name": "Pica",
+      "symbol": "pc",
+      "factor_to_si": 0.004233
+    },
+    {
+      "id": "picometer",
+      "name": "Picometer",
+      "symbol": "pm",
+      "factor_to_si": 1e-12
+    },
+    {
+      "id": "plank_length",
+      "name": "Planck Length",
+      "symbol": "lP",
+      "factor_to_si": 1.616e-35
+    },
+    {
+      "id": "point_typography",
+      "name": "Point (typography)",
+      "symbol": "pt",
+      "factor_to_si": 0.000352778
+    },
+    {
+      "id": "ri_japanese",
+      "name": "Ri (Japanese)",
+      "symbol": "ri",
+      "factor_to_si": 3927.27
+    },
+    {
+      "id": "rod",
+      "name": "Rod",
+      "symbol": "rd",
+      "factor_to_si": 5.0292
+    },
+    {
+      "id": "shaku",
+      "name": "Shaku (Japanese)",
+      "symbol": "shaku",
+      "factor_to_si": 0.303
+    },
+    {
+      "id": "span",
+      "name": "Span",
+      "symbol": "span",
+      "factor_to_si": 0.2286
+    },
+    {
+      "id": "stadion",
+      "name": "Stadion (ancient Greek)",
+      "symbol": "st",
+      "factor_to_si": 185
+    },
+    {
+      "id": "sun_japanese",
+      "name": "Sun (Japanese)",
+      "symbol": "sun",
+      "factor_to_si": 0.0303
+    },
+    {
+      "id": "thou",
+      "name": "Thou (mil)",
+      "symbol": "thou",
+      "factor_to_si": 2.54e-05
+    },
+    {
+      "id": "yard",
+      "name": "Yard",
+      "symbol": "yd",
+      "factor_to_si": 0.9144
+    },
+    {
+      "id": "yoctometer",
+      "name": "Yoctometer",
+      "symbol": "ym",
+      "factor_to_si": 1e-24
+    },
+    {
+      "id": "zeptometer",
+      "name": "Zeptometer",
+      "symbol": "zm",
+      "factor_to_si": 1e-21
+    },
+    {
+      "id": "attometer",
+      "name": "Attometer",
+      "symbol": "am",
+      "factor_to_si": 1e-18
+    },
+    {
+      "id": "petameter",
+      "name": "Petameter",
+      "symbol": "Pm",
+      "factor_to_si": 1000000000000000.0
+    },
+    {
+      "id": "exameter",
+      "name": "Exameter",
+      "symbol": "Em",
+      "factor_to_si": 1e+18
+    },
+    {
+      "id": "zhang_chinese",
+      "name": "Zhang (Chinese)",
+      "symbol": "zhang",
+      "factor_to_si": 3.333
+    },
+    {
+      "id": "chi_chinese",
+      "name": "Chi (Chinese foot)",
+      "symbol": "chi",
+      "factor_to_si": 0.3333
+    },
+    {
+      "id": "ken_japan",
+      "name": "Ken (Japan)",
+      "symbol": "ken",
+      "factor_to_si": 1.818
+    },
+    {
+      "id": "shaku_japan",
+      "name": "Shaku (Japan)",
+      "symbol": "shaku",
+      "factor_to_si": 0.303
+    },
+    {
+      "id": "vara",
+      "name": "Vara (Spain/Latin America)",
+      "symbol": "vara",
+      "factor_to_si": 0.8359
+    },
+    {
+      "id": "nautical_mile_uk",
+      "name": "Nautical mile (UK)",
+      "symbol": "nmi UK",
+      "factor_to_si": 1853.184
+    },
+    {
+      "id": "planck_length",
+      "name": "Planck length",
+      "symbol": "lP",
+      "factor_to_si": 1.616255e-35
+    }
+  ]
+}

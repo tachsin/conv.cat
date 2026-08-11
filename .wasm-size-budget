@@ -6,12 +6,16 @@
 # converter adds bytes — but it is a deliberate line in a diff, with the reason in the PR
 # description, not something that drifts upward unnoticed over twenty merges.
 #
-# Current headroom: the empty scaffold (conv-core with only IdentityConverter) compiles to
-# ~13.3 KB release. 102400 leaves room for the first real converters before anyone has to
-# think about it, and still fails loudly if something pulls in a large dependency tree.
+# Current headroom: the units vertical-slice ticket (8 categories, ~285 units — length, mass,
+# volume, cooking, temperature, fuel_consumption, life_age, clothing_size) brought the release
+# build to 129692 bytes (126.6 KB), up from the 13.3 KB empty scaffold. Checked first
+# (`cargo tree -p conv-wasm`, this ticket): the dependency tree is unchanged (conv-core, js-sys,
+# wasm-bindgen, same as the scaffold) — the growth is entirely the new units code and its
+# generated/hand-ported data tables (`crates/conv-core/src/formats/units/`), not a transitive
+# dependency. 155000 leaves ~17% headroom above that for now.
 #
-# Before raising this: check whether the growth is actually the format you added, or a
+# Before raising this again: check whether the growth is actually the format you added, or a
 # transitive dependency you did not intend to ship (`cargo tree -p conv-wasm` and
 # `wasm-pack build --release -- --features …`). Budget bumps that turn out to be an
 # accidental dependency are the exact regression this file exists to catch.
-102400
+155000

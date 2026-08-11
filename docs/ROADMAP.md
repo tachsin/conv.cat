@@ -60,7 +60,7 @@ is a deliberate decision, not a default.
 
 | Status | Item |
 | --- | --- |
-| 📋 | First vertical slice: **units**, end to end (Rust → WASM → web) — chosen because it's pure computation with no binary parsing, so a pipeline bug and a domain bug can't be confused for each other. Includes the niche categories worth keeping: clothing sizes, cooking measurements, and yes, cat/dog years. |
+| 🚧 | First vertical slice: **units**, end to end (Rust → WASM → web) — chosen because it's pure computation with no binary parsing, so a pipeline bug and a domain bug can't be confused for each other. Shipped as a representative 8-category subset (length, mass, volume, cooking, temperature, fuel consumption, life age/cat-dog years, clothing sizes) proving the pipeline through a real (non-product) browser page — see `crates/conv-core/src/formats/units/mod.rs` and `packages/data/src/units/README.md`. The remaining ~41 legacy categories are a mechanical follow-up, not yet a ticket. |
 | 📋 | `apps/web` — the single-page converter shell, with the "nothing is uploaded" proof made visible, not just claimed |
 | 📋 | Image conversion ported to `conv-core` |
 
@@ -98,7 +98,7 @@ exists yet, regardless of what the legacy site currently offers on the live doma
 
 | Category | Target formats | Status |
 | --- | --- | --- |
-| Units | Length, mass, temperature, volume, clothing sizes, cooking measurements, cat/dog years, and more | 📋 Planned — first vertical slice, Phase 2 |
+| Units | Length, mass, temperature, volume, clothing sizes, cooking measurements, cat/dog years, and more | 🚧 In progress — 8 of 49 legacy categories ported, Phase 2 vertical slice |
 | Images | PNG, JPEG, WebP, AVIF, BMP, GIF, ICO, QOI, HEIC (decode) | 📋 Planned — Phase 2 |
 | Text & Data | CSV, JSON, HTML, Markdown | 📋 Planned — Phase 3 |
 | Video & Audio | Whatever ffmpeg-wasm supports, via `packages/media` | 📋 Planned — Phase 3 |

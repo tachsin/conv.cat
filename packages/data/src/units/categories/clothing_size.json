@@ -1,0 +1,327 @@
+{
+  "id": "clothing_size",
+  "name": "Clothing Size",
+  "conversion_type": "lookup",
+  "note": "Matched via body-measurement charts. Enter bust/waist/hip in cm (e.g. 100 cm bust ≈ size 42). Kids, bra cup, and some regional sizes are approximate.",
+  "categories": [
+    "tops",
+    "bottoms",
+    "dresses",
+    "bras",
+    "shoes",
+    "hats",
+    "gloves",
+    "kids"
+  ],
+  "regions": [
+    "US",
+    "UK",
+    "EU",
+    "IT",
+    "FR",
+    "JP",
+    "CN",
+    "AU",
+    "KR",
+    "RU",
+    "BR",
+    "MX"
+  ],
+  "units": [
+    {
+      "id": "international_letter",
+      "name": "International Letter (XXS–XXL)",
+      "symbol": "INT"
+    },
+    {
+      "id": "international_number",
+      "name": "International Number (32–60)",
+      "symbol": "INT #"
+    },
+    {
+      "id": "us_womens_numeric",
+      "name": "US Women's (numeric)",
+      "symbol": "US W"
+    },
+    {
+      "id": "us_mens_numeric",
+      "name": "US Men's (numeric)",
+      "symbol": "US M"
+    },
+    {
+      "id": "us_womens_letter",
+      "name": "US Women's (letter)",
+      "symbol": "US W"
+    },
+    {
+      "id": "us_mens_letter",
+      "name": "US Men's (letter)",
+      "symbol": "US M"
+    },
+    {
+      "id": "us_kids",
+      "name": "US Kids",
+      "symbol": "US K"
+    },
+    {
+      "id": "us_toddler",
+      "name": "US Toddler",
+      "symbol": "US T"
+    },
+    {
+      "id": "us_infant",
+      "name": "US Infant",
+      "symbol": "US I"
+    },
+    {
+      "id": "uk_womens",
+      "name": "UK Women's",
+      "symbol": "UK W"
+    },
+    {
+      "id": "uk_mens",
+      "name": "UK Men's",
+      "symbol": "UK M"
+    },
+    {
+      "id": "uk_kids",
+      "name": "UK Kids",
+      "symbol": "UK K"
+    },
+    {
+      "id": "eu_womens",
+      "name": "EU Women's",
+      "symbol": "EU W"
+    },
+    {
+      "id": "eu_mens",
+      "name": "EU Men's",
+      "symbol": "EU M"
+    },
+    {
+      "id": "eu_kids",
+      "name": "EU Kids",
+      "symbol": "EU K"
+    },
+    {
+      "id": "it_womens",
+      "name": "Italian Women's",
+      "symbol": "IT W"
+    },
+    {
+      "id": "it_mens",
+      "name": "Italian Men's",
+      "symbol": "IT M"
+    },
+    {
+      "id": "fr_womens",
+      "name": "French Women's",
+      "symbol": "FR W"
+    },
+    {
+      "id": "fr_mens",
+      "name": "French Men's",
+      "symbol": "FR M"
+    },
+    {
+      "id": "jp_womens",
+      "name": "Japan Women's",
+      "symbol": "JP W"
+    },
+    {
+      "id": "jp_mens",
+      "name": "Japan Men's",
+      "symbol": "JP M"
+    },
+    {
+      "id": "cn_womens",
+      "name": "China Women's",
+      "symbol": "CN W"
+    },
+    {
+      "id": "cn_mens",
+      "name": "China Men's",
+      "symbol": "CN M"
+    },
+    {
+      "id": "au_womens",
+      "name": "Australia Women's",
+      "symbol": "AU W"
+    },
+    {
+      "id": "au_mens",
+      "name": "Australia Men's",
+      "symbol": "AU M"
+    },
+    {
+      "id": "kr_womens",
+      "name": "Korea Women's",
+      "symbol": "KR W"
+    },
+    {
+      "id": "kr_mens",
+      "name": "Korea Men's",
+      "symbol": "KR M"
+    },
+    {
+      "id": "ru_womens",
+      "name": "Russia Women's",
+      "symbol": "RU W"
+    },
+    {
+      "id": "ru_mens",
+      "name": "Russia Men's",
+      "symbol": "RU M"
+    },
+    {
+      "id": "br_womens",
+      "name": "Brazil Women's",
+      "symbol": "BR W"
+    },
+    {
+      "id": "br_mens",
+      "name": "Brazil Men's",
+      "symbol": "BR M"
+    },
+    {
+      "id": "mx_womens",
+      "name": "Mexico Women's",
+      "symbol": "MX W"
+    },
+    {
+      "id": "mx_mens",
+      "name": "Mexico Men's",
+      "symbol": "MX M"
+    },
+    {
+      "id": "dress_us",
+      "name": "US Dress Size",
+      "symbol": "US"
+    },
+    {
+      "id": "dress_uk",
+      "name": "UK Dress Size",
+      "symbol": "UK"
+    },
+    {
+      "id": "dress_eu",
+      "name": "EU Dress Size",
+      "symbol": "EU"
+    },
+    {
+      "id": "dress_fr",
+      "name": "French Dress Size",
+      "symbol": "FR"
+    },
+    {
+      "id": "bra_us",
+      "name": "US Bra Size",
+      "symbol": "US"
+    },
+    {
+      "id": "bra_uk",
+      "name": "UK Bra Size",
+      "symbol": "UK"
+    },
+    {
+      "id": "bra_eu",
+      "name": "EU Bra Size",
+      "symbol": "EU"
+    },
+    {
+      "id": "bra_fr",
+      "name": "French Bra Size",
+      "symbol": "FR"
+    },
+    {
+      "id": "bra_jp",
+      "name": "Japan Bra Size",
+      "symbol": "JP"
+    },
+    {
+      "id": "hat_us",
+      "name": "US Hat Size",
+      "symbol": "US"
+    },
+    {
+      "id": "hat_uk",
+      "name": "UK Hat Size",
+      "symbol": "UK"
+    },
+    {
+      "id": "hat_eu",
+      "name": "EU Hat Size (cm)",
+      "symbol": "EU"
+    },
+    {
+      "id": "hat_fr",
+      "name": "French Hat Size",
+      "symbol": "FR"
+    },
+    {
+      "id": "glove_us",
+      "name": "US Glove Size",
+      "symbol": "US"
+    },
+    {
+      "id": "glove_uk",
+      "name": "UK Glove Size",
+      "symbol": "UK"
+    },
+    {
+      "id": "glove_eu",
+      "name": "EU Glove Size",
+      "symbol": "EU"
+    },
+    {
+      "id": "glove_jp",
+      "name": "Japan Glove Size",
+      "symbol": "JP"
+    },
+    {
+      "id": "bust_cm",
+      "name": "Bust circumference (cm)",
+      "symbol": "cm"
+    },
+    {
+      "id": "waist_cm",
+      "name": "Waist circumference (cm)",
+      "symbol": "cm"
+    },
+    {
+      "id": "hip_cm",
+      "name": "Hip circumference (cm)",
+      "symbol": "cm"
+    },
+    {
+      "id": "neck_cm",
+      "name": "Neck circumference (cm)",
+      "symbol": "cm"
+    },
+    {
+      "id": "chest_in",
+      "name": "Chest circumference (in)",
+      "symbol": "in"
+    },
+    {
+      "id": "waist_in",
+      "name": "Waist circumference (in)",
+      "symbol": "in"
+    },
+    {
+      "id": "hip_in",
+      "name": "Hip circumference (in)",
+      "symbol": "in"
+    },
+    {
+      "id": "inseam_cm",
+      "name": "Inseam (cm)",
+      "symbol": "cm"
+    },
+    {
+      "id": "inseam_in",
+      "name": "Inseam (in)",
+      "symbol": "in"
+    }
+  ]
+}

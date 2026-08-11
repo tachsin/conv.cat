@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "conv-wasm": "file:../../crates/conv-wasm/pkg",
-    "@tauri-apps/api": "^2.9.0"
+    "@tauri-apps/api": "^2.9.0",
+    "@conv.cat/data": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^7.0.2"

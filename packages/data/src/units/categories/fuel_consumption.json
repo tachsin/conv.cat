@@ -1,0 +1,62 @@
+{
+  "id": "fuel_consumption",
+  "name": "Fuel Consumption",
+  "si_base": "liter_per_100km",
+  "conversion_type": "formula",
+  "units": [
+    {
+      "id": "km_per_liter",
+      "name": "Kilometer per Liter",
+      "symbol": "km/L",
+      "to_base": "100/x",
+      "from_base": "100/x"
+    },
+    {
+      "id": "liter_per_100km",
+      "name": "Liter per 100km",
+      "symbol": "L/100km",
+      "factor_to_si": 1
+    },
+    {
+      "id": "mile_per_liter",
+      "name": "Mile per Liter",
+      "symbol": "mi/L",
+      "to_base": "100/1.60934/x",
+      "from_base": "100/1.60934/x"
+    },
+    {
+      "id": "mpg_uk",
+      "name": "Miles per Gallon (Imperial)",
+      "symbol": "mpg imp",
+      "to_base": "282.481/x",
+      "from_base": "282.481/x"
+    },
+    {
+      "id": "mpg_us",
+      "name": "Miles per Gallon (US)",
+      "symbol": "mpg",
+      "to_base": "235.215/x",
+      "from_base": "235.215/x"
+    },
+    {
+      "id": "gallon_per_100mile_us",
+      "name": "Gallon per 100 miles (US)",
+      "symbol": "gal/100mi"
+    },
+    {
+      "id": "gallon_per_100mile_uk",
+      "name": "Gallon per 100 miles (UK)",
+      "symbol": "gal imp/100mi"
+    },
+    {
+      "id": "liter_per_km",
+      "name": "Liter per kilometer",
+      "symbol": "L/km"
+    },
+    {
+      "id": "liter_per_mile",
+      "name": "Liter per mile",
+      "symbol": "L/mi"
+    }
+  ]
+}

@@ -14,7 +14,17 @@ use wasm_bindgen::JsValue;
 /// Every [`Format`] this binding knows how to expose to JS, in the order [`supported_formats`]
 /// returns them. Single source of truth for [`parse_format`] and [`supported_formats`] so the
 /// two can never drift apart.
-const KNOWN_FORMATS: &[Format] = &[Format::PlainText];
+const KNOWN_FORMATS: &[Format] = &[
+    Format::PlainText,
+    Format::UnitsLength,
+    Format::UnitsMass,
+    Format::UnitsVolume,
+    Format::UnitsCooking,
+    Format::UnitsTemperature,
+    Format::UnitsFuelConsumption,
+    Format::UnitsLifeAge,
+    Format::UnitsClothingSize,
+];
 
 /// Parses a JS-supplied format id (e.g. `"plain_text"`, from [`Format::id`]) back into a
 /// [`Format`]. Returns `None` for an id this binding doesn't recognize — either a typo, or a

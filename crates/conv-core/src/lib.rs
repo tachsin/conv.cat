@@ -132,6 +132,23 @@ fn default_registry() -> &'static Registry {
             Format::PlainText,
             Box::new(formats::identity::IdentityConverter),
         );
+
+        // Units: one converter, registered for every in-scope category's self-pair — see
+        // `formats::units` module docs for why units are modeled as self-pairs rather than
+        // distinct from/to `Format`s.
+        for format in [
+            Format::UnitsLength,
+            Format::UnitsMass,
+            Format::UnitsVolume,
+            Format::UnitsCooking,
+            Format::UnitsTemperature,
+            Format::UnitsFuelConsumption,
+            Format::UnitsLifeAge,
+            Format::UnitsClothingSize,
+        ] {
+            registry.register(format, format, Box::new(formats::units::UnitsConverter));
+        }
+
         registry
     })
 }

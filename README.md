@@ -42,13 +42,15 @@ quickstart below gets you a local build to try yourself.
 
 ## Supported formats
 
-**Nothing converts yet — this is a ground-up rebuild in progress.** The table below is the
-target catalog, not what's shipped today; see [Status](#status-of-this-repository) and the
-[roadmap](docs/ROADMAP.md#format-catalog--target-state) for the real, current state.
+**Most of this doesn't convert yet — this is a ground-up rebuild in progress.** The table below is
+the target catalog, not what's shipped today; see [Status](#status-of-this-repository) and the
+[roadmap](docs/ROADMAP.md#format-catalog--target-state) for the real, current state. Units is the
+first category with real converters behind it (a representative subset, not the full target list
+yet — see `packages/data/src/units/README.md`).
 
 | Category | Target formats | Status |
 | --- | --- | --- |
-| Units | Length, mass, temperature, volume, clothing sizes, cooking measurements, cat/dog years, and more | 📋 Planned |
+| Units | Length, mass, temperature, volume, clothing sizes, cooking measurements, cat/dog years, and more | 🚧 In progress — 8 of 49 legacy categories ported (length, mass, volume, cooking, temperature, fuel consumption, clothing sizes, cat/dog years) |
 | Images | PNG, JPEG, WebP, AVIF, BMP, GIF, ICO, QOI, HEIC (decode) | 📋 Planned |
 | Video & Audio | Whatever [ffmpeg-wasm](https://ffmpegwasm.netlify.app/) supports, via `packages/media` | 📋 Planned |
 | Text & Data | CSV, JSON, HTML, Markdown | 📋 Planned |
@@ -127,13 +129,20 @@ This is a public, from-scratch rebuild — it does not run the live conv.cat pro
 
 **Done:** the monorepo scaffold, the split licence and its boundary check, the `conv-core`
 foundation (the `Converter` trait, the format registry, typed errors, the cancellation hook),
-the golden-file conformance harness, and CI (Rust fmt/clippy/test, JS lint/typecheck/build,
-WASM build with a size budget, CodeQL).
+the golden-file conformance harness, CI (Rust fmt/clippy/test, JS lint/typecheck/build, WASM
+build with a size budget, CodeQL), the `conv-wasm` bindings and `packages/engine` (WASM-in-Worker
+backend, real in a browser), and the first real conversion category — units, a representative
+8-category subset (length, mass, volume, cooking, temperature, fuel consumption, life age
+including cat/dog years, clothing sizes) proving the full Rust → WASM → `packages/engine` → a
+real (non-product) browser page pipeline end to end. See
+`crates/conv-core/src/formats/units/mod.rs` for the wire protocol and conversion models, and
+`packages/data/src/units/README.md` for what's in scope and its honest gaps.
 
-**Not done:** any actual converter. The registry currently holds exactly one entry — a
-plain-text passthrough that exists so the dispatch path has something to test. No image, video,
-audio, unit, timezone or CAD conversion works in this repository yet, and the WASM bindings and
-app shells are still scaffolds.
+**Not done:** every other conversion category. Image, video, audio, text/data, timezone and CAD
+conversion don't work in this repository yet, the remaining ~41 legacy unit categories aren't
+ported, and the app shells (`apps/web`'s real Next.js UI, `apps/desktop`'s Tauri native bindings)
+are still scaffolds — the units page that exists (`apps/web/units-demo/`) is a manual QA harness,
+not the product UI.
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the honest, staged plan — what's shipped, what's
 scoped, and what's still just direction. If you're used to the live site's current feature set,

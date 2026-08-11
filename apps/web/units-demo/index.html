@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>conv.cat units demo — manual QA harness, not the product UI</title>
+    <style>
+      body { font: 14px/1.5 system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+      form { display: grid; gap: 0.5rem; margin: 1rem 0; }
+      label { display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; }
+      label > span { flex: 0 0 auto; }
+      select, input { flex: 1 1 auto; }
+      dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; }
+      dt { font-weight: 600; }
+      pre { white-space: pre-wrap; background: #f4f4f4; padding: 0.5rem; }
+      output { font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <h1>conv.cat units demo</h1>
+    <p>
+      Manual verification that a real unit conversion runs through Rust → <code>conv-core</code> →
+      <code>conv-wasm</code> → <code>@conv.cat/engine</code> in the browser, with unit metadata
+      from <code>@conv.cat/data</code>. <strong>This is not the product UI</strong> — the real
+      single-page converter shell is a separate, not-yet-built backlog ticket ("apps/web: the
+      single-page converter shell"); <code>apps/web/src</code> is still a bare scaffold today. This
+      page exists purely to prove the units vertical slice works end to end in a real browser,
+      the same way <code>packages/engine/demo</code> proves the base pipeline.
+    </p>
+
+    <dl id="engine-info">
+      <dt>Loading engine…</dt>
+      <dd></dd>
+    </dl>
+
+    <form id="convert-form">
+      <label><span>Category</span> <select id="category-select"></select></label>
+      <label><span>From</span> <select id="from-select"></select></label>
+      <label><span>To</span> <select id="to-select"></select></label>
+      <label><span>Value</span> <input id="value-input" value="1" required /></label>
+      <div>
+        <button type="submit">Convert</button>
+      </div>
+    </form>
+
+    <p>Result: <output id="result">—</output></p>
+    <pre id="status">Idle.</pre>
+
+    <!--
+      Browsers only resolve bare specifiers via an import map — there's no Node-style
+      node_modules lookup in a plain `<script type="module">`. This maps the same specifiers
+      packages/engine/@conv.cat/data resolve via their own `file:`/workspace dependencies to the
+      actual built files `serve.mjs` serves them from (see that file's own comments for why
+      `conv-wasm` needs a server-side rewrite instead of just an import-map entry, inside the
+      worker `@conv.cat/engine` spawns). The real web app's build goes through a bundler (a
+      separate ticket) and won't need any of this — bundlers resolve bare specifiers on their own.
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@conv.cat/engine": "/packages/engine/dist/index.js",
+          "@conv.cat/data": "/packages/data/dist/index.js",
+          "conv-wasm": "/packages/engine/node_modules/conv-wasm/conv_wasm.js"
+        }
+      }
+    </script>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

@@ -7,7 +7,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "demo": "node units-demo/serve.mjs"
+  },
+  "dependencies": {
+    "@conv.cat/engine": "workspace:*",
+    "@conv.cat/data": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^7.0.2"

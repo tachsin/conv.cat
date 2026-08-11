@@ -1,0 +1,253 @@
+{
+  "id": "mass",
+  "name": "Mass",
+  "si_base": "kilogram",
+  "units": [
+    {
+      "id": "carat",
+      "name": "Carat",
+      "symbol": "ct",
+      "factor_to_si": 0.0002
+    },
+    {
+      "id": "dalton",
+      "name": "Dalton (atomic mass unit)",
+      "symbol": "Da",
+      "factor_to_si": 1.66054e-27
+    },
+    {
+      "id": "dram",
+      "name": "Dram",
+      "symbol": "dr",
+      "factor_to_si": 0.00177185
+    },
+    {
+      "id": "electron_mass",
+      "name": "Electron Mass",
+      "symbol": "me",
+      "factor_to_si": 9.109e-31
+    },
+    {
+      "id": "grain",
+      "name": "Grain",
+      "symbol": "gr",
+      "factor_to_si": 6.47989e-05
+    },
+    {
+      "id": "gram",
+      "name": "Gram",
+      "symbol": "g",
+      "factor_to_si": 0.001
+    },
+    {
+      "id": "jin_chinese",
+      "name": "Jin (Chinese)",
+      "symbol": "斤",
+      "factor_to_si": 0.5
+    },
+    {
+      "id": "kan_japanese",
+      "name": "Kan (Japanese)",
+      "symbol": "貫",
+      "factor_to_si": 3.75
+    },
+    {
+      "id": "kilogram",
+      "name": "Kilogram",
+      "symbol": "kg",
+      "factor_to_si": 1
+    },
+    {
+      "id": "long_ton",
+      "name": "Long Ton (UK)",
+      "symbol": "L/T",
+      "factor_to_si": 1016.05
+    },
+    {
+      "id": "microgram",
+      "name": "Microgram",
+      "symbol": "μg",
+      "factor_to_si": 1e-09
+    },
+    {
+      "id": "milligram",
+      "name": "Milligram",
+      "symbol": "mg",
+      "factor_to_si": 1e-06
+    },
+    {
+      "id": "mina_ancient",
+      "name": "Mina (ancient)",
+      "symbol": "mina",
+      "factor_to_si": 0.4333
+    },
+    {
+      "id": "ounce",
+      "name": "Ounce",
+      "symbol": "oz",
+      "factor_to_si": 0.0283495
+    },
+    {
+      "id": "pennyweight",
+      "name": "Pennyweight",
+      "symbol": "dwt",
+      "factor_to_si": 0.00155517
+    },
+    {
+      "id": "planck_mass",
+      "name": "Planck Mass",
+      "symbol": "mP",
+      "factor_to_si": 2.176e-08
+    },
+    {
+      "id": "pound",
+      "name": "Pound",
+      "symbol": "lb",
+      "factor_to_si": 0.453592
+    },
+    {
+      "id": "quintal",
+      "name": "Quintal",
+      "symbol": "q",
+      "factor_to_si": 100
+    },
+    {
+      "id": "scruple",
+      "name": "Scruple (apothecary)",
+      "symbol": "s ap",
+      "factor_to_si": 0.00129958
+    },
+    {
+      "id": "shekel_ancient",
+      "name": "Shekel (ancient)",
+      "symbol": "shekel",
+      "factor_to_si": 0.01133
+    },
+    {
+      "id": "short_ton",
+      "name": "Short Ton (US)",
+      "symbol": "ton",
+      "factor_to_si": 907.185
+    },
+    {
+      "id": "slug",
+      "name": "Slug",
+      "symbol": "slug",
+      "factor_to_si": 14.5939
+    },
+    {
+      "id": "solar_mass",
+      "name": "Solar Mass",
+      "symbol": "M☉",
+      "factor_to_si": 1.989e+30
+    },
+    {
+      "id": "stone",
+      "name": "Stone",
+      "symbol": "st",
+      "factor_to_si": 6.35029
+    },
+    {
+      "id": "talent_ancient",
+      "name": "Talent (ancient)",
+      "symbol": "talent",
+      "factor_to_si": 26
+    },
+    {
+      "id": "tonne",
+      "name": "Tonne (metric ton)",
+      "symbol": "t",
+      "factor_to_si": 1000
+    },
+    {
+      "id": "troy_ounce",
+      "name": "Troy Ounce",
+      "symbol": "oz t",
+      "factor_to_si": 0.0311035
+    },
+    {
+      "id": "troy_pound",
+      "name": "Troy Pound",
+      "symbol": "lb t",
+      "factor_to_si": 0.373242
+    },
+    {
+      "id": "yoctogram",
+      "name": "Yoctogram",
+      "symbol": "yg",
+      "factor_to_si": 1e-27
+    },
+    {
+      "id": "zeptogram",
+      "name": "Zeptogram",
+      "symbol": "zg",
+      "factor_to_si": 1e-24
+    },
+    {
+      "id": "attogram",
+      "name": "Attogram",
+      "symbol": "ag",
+      "factor_to_si": 1e-21
+    },
+    {
+      "id": "femtogram",
+      "name": "Femtogram",
+      "symbol": "fg",
+      "factor_to_si": 1e-18
+    },
+    {
+      "id": "petagram",
+      "name": "Petagram",
+      "symbol": "Pg",
+      "factor_to_si": 1000000000000.0
+    },
+    {
+      "id": "exagram",
+      "name": "Exagram",
+      "symbol": "Eg",
+      "factor_to_si": 1000000000000000.0
+    },
+    {
+      "id": "momme",
+      "name": "Momme (Japan)",
+      "symbol": "momme",
+      "factor_to_si": 0.00375
+    },
+    {
+      "id": "tael",
+      "name": "Tael (Hong Kong)",
+      "symbol": "tael",
+      "factor_to_si": 0.0377994
+    },
+    {
+      "id": "catty",
+      "name": "Catty (China)",
+      "symbol": "jin",
+      "factor_to_si": 0.5
+    },
+    {
+      "id": "stone_uk",
+      "name": "Stone (UK)",
+      "symbol": "st",
+      "factor_to_si": 6.35029
+    },
+    {
+      "id": "quarter_uk",
+      "name": "Quarter (UK)",
+      "symbol": "qr",
+      "factor_to_si": 12.7006
+    },
+    {
+      "id": "hundredweight_uk",
+      "name": "Hundredweight (UK)",
+      "symbol": "cwt",
+      "factor_to_si": 50.8023
+    },
+    {
+      "id": "hundredweight_us",
+      "name": "Hundredweight (US)",
+      "symbol": "cwt US",
+      "factor_to_si": 45.3592
+    }
+  ]
+}

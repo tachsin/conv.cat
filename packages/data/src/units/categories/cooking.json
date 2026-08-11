@@ -1,0 +1,157 @@
+{
+  "id": "cooking",
+  "name": "Cooking Measurements",
+  "si_base": "milliliter",
+  "units": [
+    {
+      "id": "cup_metric",
+      "name": "Cup (metric)",
+      "symbol": "cup",
+      "factor_to_si": 250
+    },
+    {
+      "id": "cup_uk",
+      "name": "Cup (UK)",
+      "symbol": "cup",
+      "factor_to_si": 284.131
+    },
+    {
+      "id": "cup_us",
+      "name": "Cup (US)",
+      "symbol": "cup",
+      "factor_to_si": 236.588
+    },
+    {
+      "id": "dash",
+      "name": "Dash",
+      "symbol": "dash",
+      "factor_to_si": 0.616
+    },
+    {
+      "id": "dessertspoon",
+      "name": "Dessertspoon",
+      "symbol": "dstspn",
+      "factor_to_si": 10
+    },
+    {
+      "id": "jigger",
+      "name": "Jigger (bartending)",
+      "symbol": "jigger",
+      "factor_to_si": 44.36
+    },
+    {
+      "id": "milliliter",
+      "name": "Milliliter",
+      "symbol": "mL",
+      "factor_to_si": 1
+    },
+    {
+      "id": "pinch",
+      "name": "Pinch",
+      "symbol": "pinch",
+      "factor_to_si": 0.308
+    },
+    {
+      "id": "smidgen",
+      "name": "Smidgen",
+      "symbol": "smidgen",
+      "factor_to_si": 0.616
+    },
+    {
+      "id": "tablespoon_uk",
+      "name": "Tablespoon (UK)",
+      "symbol": "tbsp",
+      "factor_to_si": 17.7582
+    },
+    {
+      "id": "tablespoon_us",
+      "name": "Tablespoon (US)",
+      "symbol": "tbsp",
+      "factor_to_si": 14.7868
+    },
+    {
+      "id": "teaspoon_uk",
+      "name": "Teaspoon (UK)",
+      "symbol": "tsp",
+      "factor_to_si": 5.91939
+    },
+    {
+      "id": "teaspoon_us",
+      "name": "Teaspoon (US)",
+      "symbol": "tsp",
+      "factor_to_si": 4.92892
+    },
+    {
+      "id": "fluid_ounce_us",
+      "name": "Fluid ounce (US)",
+      "symbol": "fl oz",
+      "factor_to_si": 29.5735
+    },
+    {
+      "id": "fluid_ounce_uk",
+      "name": "Fluid ounce (UK)",
+      "symbol": "fl oz imp",
+      "factor_to_si": 28.4131
+    },
+    {
+      "id": "pint_us",
+      "name": "Pint (US)",
+      "symbol": "pt",
+      "factor_to_si": 473.176
+    },
+    {
+      "id": "pint_uk",
+      "name": "Pint (UK)",
+      "symbol": "pt imp",
+      "factor_to_si": 568.261
+    },
+    {
+      "id": "quart_us",
+      "name": "Quart (US)",
+      "symbol": "qt",
+      "factor_to_si": 946.353
+    },
+    {
+      "id": "quart_uk",
+      "name": "Quart (UK)",
+      "symbol": "qt imp",
+      "factor_to_si": 1136.52
+    },
+    {
+      "id": "gallon_us",
+      "name": "Gallon (US)",
+      "symbol": "gal",
+      "factor_to_si": 3785.41
+    },
+    {
+      "id": "gallon_uk",
+      "name": "Gallon (UK)",
+      "symbol": "gal imp",
+      "factor_to_si": 4546.09
+    },
+    {
+      "id": "liter",
+      "name": "Liter",
+      "symbol": "L",
+      "factor_to_si": 1000
+    },
+    {
+      "id": "drop",
+      "name": "Drop (medical)",
+      "symbol": "gtt",
+      "factor_to_si": 0.05
+    },
+    {
+      "id": "bushel_us",
+      "name": "Bushel (US dry)",
+      "symbol": "bu",
+      "factor_to_si": 35239.1
+    },
+    {
+      "id": "peck",
+      "name": "Peck (US)",
+      "symbol": "pk",
+      "factor_to_si": 8809.77
+    }
+  ]
+}

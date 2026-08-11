@@ -1,10 +1,11 @@
 //! Real conversion algorithms live under here, one submodule per [`crate::Category`]
 //! (`units`, `text`, `cad`, `image`) — see `docs/adding-a-format.md` for the convention and a
-//! full worked example. None of those category modules exist yet; format-by-format backlog
-//! tickets add them one at a time.
+//! full worked example. [`units`] is the first one to land (a representative 8-category subset —
+//! see its own module docs); `text`/`cad`/`image` are still open backlog tickets.
 //!
-//! [`identity`] is the one exception: a placeholder [`crate::Converter`] that proves the
-//! [`crate::Registry`]/[`crate::convert`] pipeline end to end before any real format lands. It is
-//! not a real format converter and should not be imitated — see its own module docs.
+//! [`identity`] is the odd one out: a placeholder [`crate::Converter`] that proves the
+//! [`crate::Registry`]/[`crate::convert`] pipeline end to end, not a real format converter — see
+//! its own module docs.
 
 pub mod identity;
+pub mod units;

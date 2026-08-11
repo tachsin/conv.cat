@@ -1,0 +1,14 @@
+{
+  "version": "0.1",
+  "description": "conv.cat units catalog — representative subset ported for the units vertical-slice ticket. See README.md in this directory for what's in scope and the honest gaps within it.",
+  "categories": [
+    "length",
+    "mass",
+    "volume",
+    "cooking",
+    "temperature",
+    "fuel_consumption",
+    "life_age",
+    "clothing_size"
+  ]
+}

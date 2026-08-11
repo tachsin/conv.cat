@@ -1,0 +1,1 @@
+hamster|human|1.5
