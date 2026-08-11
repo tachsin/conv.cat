@@ -98,11 +98,37 @@ Install them with:
   pnpm       npm install -g pnpm@11      (or: corepack enable)
   node       nvm install                 (version comes from .nvmrc)
   cargo      https://rustup.rs           (toolchain comes from rust-toolchain.toml)
-  wasm-pack  cargo install wasm-pack
+  wasm-pack  cargo install wasm-pack --locked --version "$(cat .wasm-pack-version)"
 
 See docs/BUILD.md for the full prerequisites section.
 EOF
   exit 1
+fi
+
+# wasm-pack is the one toolchain the repo cannot pin declaratively — there is no
+# .nvmrc/rust-toolchain.toml equivalent, so .wasm-pack-version plus this check is
+# the pin. It matters more than a normal version nag: wasm-pack bundles a
+# wasm-bindgen CLI that must match the wasm-bindgen CRATE version in
+# crates/conv-wasm/Cargo.toml, and a mismatch surfaces as a confusing runtime
+# error in the browser rather than a build failure.
+#
+# Local drift warns (so a contributor is never blocked by a version bump);
+# CI fails, because that is where a reproducible artifact actually matters.
+# Same split as --frozen-lockfile above.
+if [[ -f .wasm-pack-version ]]; then
+  wasm_pack_pinned="$(tr -d '[:space:]' < .wasm-pack-version)"
+  wasm_pack_actual="$(wasm-pack --version | cut -d' ' -f2)"
+  if [[ "$wasm_pack_actual" != "$wasm_pack_pinned" ]]; then
+    msg="wasm-pack $wasm_pack_actual does not match the pinned $wasm_pack_pinned"
+    fix="cargo install wasm-pack --locked --version $wasm_pack_pinned"
+    if [[ "${CI:-}" == 'true' ]]; then
+      printf '\n%s✗ %s%s\n  Fix: %s\n' "$red" "$msg" "$reset" "$fix" >&2
+      exit 1
+    fi
+    printf '%s  ! %s%s\n    Fix: %s\n' "$red" "$msg" "$reset" "$fix"
+    printf '%s    Continuing — if the browser engine misbehaves, this is the first thing to rule out.%s\n' \
+      "$dim" "$reset"
+  fi
 fi
 
 # rustup reads rust-toolchain.toml itself, but the wasm target is a separate

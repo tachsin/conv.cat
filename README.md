@@ -58,7 +58,7 @@ target catalog, not what's shipped today; see [Status](#status-of-this-repositor
 
 Toolchains are pinned via `.nvmrc` and `rust-toolchain.toml` — `nvm`/`rustup` pick up the right
 versions automatically. You'll also need `pnpm` (`corepack enable`) and `wasm-pack`
-(`cargo install wasm-pack`).
+(`cargo install wasm-pack --locked --version "$(cat .wasm-pack-version)"`).
 
 ```bash
 ./scripts/build-all.sh            # build everything, in dependency order

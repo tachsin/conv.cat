@@ -31,7 +31,8 @@ tests, typecheck, licence boundary).
 
 If you don't have `pnpm`, `rustup` or `wasm-pack` yet: `corepack enable` gets you the pinned
 `pnpm` from `packageManager` in the root `package.json`; [rustup.rs](https://rustup.rs) gets you
-`rustup`; `cargo install wasm-pack` gets you the last one.
+`rustup`; and `cargo install wasm-pack --locked --version "$(cat .wasm-pack-version)"` gets you
+the last one at the version this repo pins.
 
 Build order, per-piece commands for the inner dev loop, and troubleshooting live in
 [`BUILD.md`](BUILD.md).

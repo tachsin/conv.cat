@@ -15,11 +15,25 @@ If you only want to get a working checkout: install the prerequisites, then run
 | Node | see [`.nvmrc`](../.nvmrc) | `nvm install` | `nvm use` picks up `.nvmrc` automatically |
 | pnpm | see `packageManager` in [`package.json`](../package.json) | `corepack enable` | npm/yarn will not work — this is a pnpm workspace |
 | Rust | see [`rust-toolchain.toml`](../rust-toolchain.toml) | [rustup.rs](https://rustup.rs) | rustup reads the pinned toolchain automatically |
-| wasm-pack | 0.13+ | `cargo install wasm-pack` | needed for the browser engine |
+| wasm-pack | see [`.wasm-pack-version`](../.wasm-pack-version) | `cargo install wasm-pack --locked --version "$(cat .wasm-pack-version)"` | needed for the browser engine |
 
-Both toolchains are pinned in-repo, so `nvm use` and `rustup` give you the same
+Every toolchain is pinned in-repo, so `nvm use` and `rustup` give you the same
 versions CI uses. The `wasm32-unknown-unknown` target is declared in
 `rust-toolchain.toml`; `build-all.sh` adds it if it is somehow missing.
+
+**wasm-pack is pinned by file, not by toolchain.** Unlike Node and Rust it has no
+`.nvmrc`-style mechanism, so the version lives in `.wasm-pack-version` and
+`build-all.sh` enforces it. This is not version pedantry: wasm-pack bundles a
+`wasm-bindgen` CLI that must match the `wasm-bindgen` **crate** version in
+`crates/conv-wasm/Cargo.toml`. When they diverge you get a confusing runtime error
+in the browser rather than an honest build failure, so it is worth catching up
+front.
+
+A mismatch **warns locally and fails under CI** — the same split as
+`--frozen-lockfile`. You are never blocked by a version bump while working, but the
+artifact CI produces is always built with the pinned version. To bump it: update
+`.wasm-pack-version`, run the install command above, and verify with a full
+`./scripts/build-all.sh --clean --check` in the same commit.
 
 You do not need to install these individually — `build-all.sh` checks all four up
 front and tells you exactly what is missing and how to get it, rather than dying
