@@ -16,6 +16,8 @@ use wasm_bindgen::JsValue;
 /// two can never drift apart.
 const KNOWN_FORMATS: &[Format] = &[
     Format::PlainText,
+    Format::Bmp,
+    Format::Qoi,
     Format::UnitsLength,
     Format::UnitsMass,
     Format::UnitsVolume,
