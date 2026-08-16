@@ -25,24 +25,20 @@ impl Converter for RasterConverter {
             return Err(ConvertError::Cancelled);
         }
 
-        let image = decode(input, from)?;
-        options.report_progress(0.5);
+        let image = decode(input, from, options)?;
 
-        let output = match to {
-            Format::Bmp => bmp::encode(&image),
-            Format::Qoi => qoi::encode(&image),
-            _ => return Err(ConvertError::UnsupportedPair { from, to }),
-        };
-
-        options.report_progress(1.0);
-        Ok(output)
+        match to {
+            Format::Bmp => bmp::encode(&image, options),
+            Format::Qoi => qoi::encode(&image, options),
+            _ => Err(ConvertError::UnsupportedPair { from, to }),
+        }
     }
 }
 
-fn decode(input: &[u8], from: Format) -> Result<RawImage, ConvertError> {
+fn decode(input: &[u8], from: Format, options: &ConvertOptions) -> Result<RawImage, ConvertError> {
     match from {
-        Format::Bmp => bmp::decode(input),
-        Format::Qoi => qoi::decode(input),
+        Format::Bmp => bmp::decode(input, options),
+        Format::Qoi => qoi::decode(input, options),
         _ => Err(ConvertError::UnsupportedPair { from, to: from }),
     }
 }

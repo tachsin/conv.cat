@@ -5,14 +5,20 @@
 //! [`ConvertError::UnsupportedFeature`] rather than guessing.
 
 use super::raster::{checked_rgba_len, RawImage};
-use crate::{ConvertError, Format};
+use crate::{ConvertError, ConvertOptions, Format};
 
 const FILE_HEADER_LEN: usize = 14;
 const INFO_HEADER_LEN: usize = 40;
 const BI_RGB: u32 = 0;
 
 /// Decodes a 24-bit, uncompressed, bottom-up BMP into a [`RawImage`].
-pub fn decode(input: &[u8]) -> Result<RawImage, ConvertError> {
+///
+/// Polls `options` for cancellation and reports progress (the `0.0..=0.5` half of a full
+/// decode-then-encode conversion — see [`super::converter::RasterConverter`]) once per row — a
+/// natural, cheap checkpoint bounded the same way the total pixel count is (a pathologically
+/// narrow image has as many rows as a square one has pixels, but both are capped by this crate's
+/// overall pixel-count ceiling — see `raster::MAX_PIXELS`).
+pub fn decode(input: &[u8], options: &ConvertOptions) -> Result<RawImage, ConvertError> {
     let malformed = || ConvertError::MalformedInput {
         format: Format::Bmp,
     };
@@ -81,6 +87,11 @@ pub fn decode(input: &[u8]) -> Result<RawImage, ConvertError> {
     let mut pixels = vec![0u8; rgba_len as usize];
 
     for file_row in 0..height as usize {
+        if options.is_cancelled() {
+            return Err(ConvertError::Cancelled);
+        }
+        options.report_progress(0.5 * (file_row as f32 / height as f32));
+
         // Bottom-up storage: the first row on disk is the bottom scanline of the image.
         let image_row = height as usize - 1 - file_row;
         let row_start = off_bits + file_row * row_stride;
@@ -99,12 +110,16 @@ pub fn decode(input: &[u8]) -> Result<RawImage, ConvertError> {
         }
     }
 
+    options.report_progress(0.5);
     RawImage::new(width, height, pixels, Format::Bmp)
 }
 
 /// Encodes a [`RawImage`] as a 24-bit, uncompressed, bottom-up BMP. Lossy only in the sense that
 /// alpha is dropped (BMP's `BI_RGB` has no alpha channel) — otherwise byte-exact and deterministic.
-pub fn encode(image: &RawImage) -> Vec<u8> {
+///
+/// Polls `options` for cancellation and reports progress (the `0.5..=1.0` half — see
+/// [`super::converter::RasterConverter`]) once per row, same rationale as [`decode`].
+pub fn encode(image: &RawImage, options: &ConvertOptions) -> Result<Vec<u8>, ConvertError> {
     let width = image.width as u64;
     let height = image.height as u64;
     let row_bytes = width * 3;
@@ -140,6 +155,11 @@ pub fn encode(image: &RawImage) -> Vec<u8> {
     let padding = row_stride - width * 3;
 
     for file_row in 0..height {
+        if options.is_cancelled() {
+            return Err(ConvertError::Cancelled);
+        }
+        options.report_progress(0.5 + 0.5 * (file_row as f32 / height as f32));
+
         // Bottom-up storage: emit the bottom image row first.
         let image_row = height - 1 - file_row;
         for x in 0..width {
@@ -156,7 +176,8 @@ pub fn encode(image: &RawImage) -> Vec<u8> {
         out.resize(out.len() + padding, 0);
     }
 
-    out
+    options.report_progress(1.0);
+    Ok(out)
 }
 
 fn read_u16_le(input: &[u8], offset: usize) -> u16 {
@@ -179,4 +200,66 @@ fn read_i32_le(input: &[u8], offset: usize) -> i32 {
         input[offset + 2],
         input[offset + 3],
     ])
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ProgressSink;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Arc;
+
+    /// Reports "not cancelled" for its first `cancel_after` polls, then "cancelled" forever
+    /// after — lets a test prove a loop checks cancellation *more than once*, not just at its
+    /// very first opportunity (which every converter already did before this module's `decode`/
+    /// `encode` grew per-row checks).
+    struct CancelAfterNPolls {
+        calls: AtomicUsize,
+        cancel_after: usize,
+    }
+
+    impl ProgressSink for CancelAfterNPolls {
+        fn on_progress(&self, _fraction: f32) {}
+        fn is_cancelled(&self) -> bool {
+            self.calls.fetch_add(1, Ordering::SeqCst) >= self.cancel_after
+        }
+    }
+
+    fn options_cancelling_after(cancel_after: usize) -> (ConvertOptions, Arc<CancelAfterNPolls>) {
+        let sink = Arc::new(CancelAfterNPolls {
+            calls: AtomicUsize::new(0),
+            cancel_after,
+        });
+        let options = ConvertOptions {
+            progress: Some(sink.clone() as Arc<dyn ProgressSink>),
+            ..ConvertOptions::default()
+        };
+        (options, sink)
+    }
+
+    #[test]
+    fn decode_checks_cancellation_on_more_than_just_the_first_row() {
+        // A 1x3 image, so the row loop has three chances to notice cancellation, not one.
+        let image = RawImage::new(1, 3, vec![0u8; 3 * 4], Format::Bmp).unwrap();
+        let bytes = encode(&image, &ConvertOptions::default()).unwrap();
+
+        let (options, sink) = options_cancelling_after(1);
+        let result = decode(&bytes, &options);
+
+        assert!(matches!(result, Err(ConvertError::Cancelled)));
+        // The first poll (row 0) must have returned false, or decoding would never have reached
+        // a second poll at all — proving the check runs inside the loop, not only before it.
+        assert!(sink.calls.load(Ordering::SeqCst) >= 2);
+    }
+
+    #[test]
+    fn encode_checks_cancellation_on_more_than_just_the_first_row() {
+        let image = RawImage::new(1, 3, vec![0u8; 3 * 4], Format::Bmp).unwrap();
+
+        let (options, sink) = options_cancelling_after(1);
+        let result = encode(&image, &options);
+
+        assert!(matches!(result, Err(ConvertError::Cancelled)));
+        assert!(sink.calls.load(Ordering::SeqCst) >= 2);
+    }
 }
