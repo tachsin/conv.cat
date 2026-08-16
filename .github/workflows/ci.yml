@@ -168,6 +168,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Build first, not last: apps/web imports @conv.cat/engine and @conv.cat/data by their
+      # package.json `types` field (./dist/index.d.ts), not by TS project reference or path
+      # mapping to source — so until each workspace package's own `tsc` has run once, those
+      # types don't exist on disk yet and both typed ESLint rules and `tsc --noEmit` below can
+      # only see them as `any`/unresolved, not "the type is actually wrong". Same reasoning
+      # `scripts/build-all.sh` already follows (build JS packages/apps before its own lint/
+      # typecheck steps) — this job used to do lint/typecheck first and was red on `main` for
+      # exactly this reason before this comment was added.
+      - name: Build packages and apps
+        run: pnpm build
+
       # Lint is a gate from the first commit, on purpose — see the long note at the top of
       # eslint.config.js about the debt trap this project is rebuilding to escape.
       - name: Lint
@@ -175,9 +186,6 @@ jobs:
 
       - name: Typecheck
         run: pnpm typecheck
-
-      - name: Build packages and apps
-        run: pnpm build
 
   # ── Dependency review ─────────────────────────────────────────────────────────────────────
   # PR-only: flags a dependency added in this PR that carries a known vulnerability, before it

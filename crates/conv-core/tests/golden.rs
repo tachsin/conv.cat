@@ -13,6 +13,75 @@ mod support;
 use conv_core::formats::units::generated;
 use conv_core::{ConvertOptions, Format};
 
+// ─── image / bmp, image / qoi ─────────────────────────────────────────────────
+//
+// The first file-shaped category: BMP ⇄ QOI, both directions, via a shared 4×4 checkerboard
+// fixture (white/black alternating pixels — enough to exercise QOI's index-cache, diff, and
+// run-length chunk kinds without needing a large image). See `crates/conv-core/src/formats/image`
+// module docs for why these two formats specifically. Both are deterministic/lossless, so these
+// are byte-exact goldens like `plain_text` above, not the tolerance-band style `units` uses.
+
+#[test]
+fn image_bmp_to_qoi_checkerboard() {
+    support::run_golden_case(
+        "image/qoi/checker_4x4.bmp",
+        "image/qoi/checker_4x4.qoi",
+        Format::Bmp,
+        Format::Qoi,
+    );
+}
+
+#[test]
+fn image_qoi_to_bmp_checkerboard() {
+    support::run_golden_case(
+        "image/bmp/checker_4x4.qoi",
+        "image/bmp/checker_4x4.bmp",
+        Format::Qoi,
+        Format::Bmp,
+    );
+}
+
+#[test]
+fn image_bmp_truncated_pixel_data_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/qoi/truncated.bmp.bad",
+        Format::Bmp,
+        Format::Qoi,
+    );
+}
+
+#[test]
+fn image_qoi_bad_magic_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/bmp/bad_magic.qoi.bad",
+        Format::Qoi,
+        Format::Bmp,
+    );
+}
+
+#[test]
+fn image_qoi_trailing_data_after_end_marker_is_a_typed_error() {
+    // A stream that decodes the declared pixel count fine but keeps going past where the
+    // mandatory end marker says it must stop — the trailing-data check in `qoi::decode` exists
+    // specifically to catch this, not just the per-chunk bounds checks.
+    support::assert_malformed_produces_typed_error(
+        "image/bmp/trailing_data.qoi.bad",
+        Format::Qoi,
+        Format::Bmp,
+    );
+}
+
+#[test]
+fn image_qoi_corrupted_end_marker_is_a_typed_error() {
+    // Right length, wrong terminator bytes (last byte flipped from 0x01 to 0x00) — decodes the
+    // right pixel count but doesn't end with the spec's mandatory 7-zero-bytes-then-0x01 marker.
+    support::assert_malformed_produces_typed_error(
+        "image/bmp/bad_end_marker.qoi.bad",
+        Format::Qoi,
+        Format::Bmp,
+    );
+}
+
 // ─── text / plain_text ──────────────────────────────────────────────────────
 //
 // `IdentityConverter` (PlainText -> PlainText) is a passthrough, so every golden file here is
@@ -413,6 +482,14 @@ fn units_clothing_size_kids_sizing_honest_gap_is_a_typed_error() {
 fn fixtures_tree_has_no_stray_or_orphaned_files() {
     support::assert_no_stray_files(&[
         "README.md",
+        "image/qoi/checker_4x4.bmp",
+        "image/qoi/checker_4x4.qoi",
+        "image/qoi/truncated.bmp.bad",
+        "image/bmp/checker_4x4.qoi",
+        "image/bmp/checker_4x4.bmp",
+        "image/bmp/bad_magic.qoi.bad",
+        "image/bmp/trailing_data.qoi.bad",
+        "image/bmp/bad_end_marker.qoi.bad",
         "text/plain_text/hello.input.txt",
         "text/plain_text/hello.golden.txt",
         "text/plain_text/empty.input.txt",

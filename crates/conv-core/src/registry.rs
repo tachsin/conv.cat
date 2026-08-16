@@ -42,6 +42,16 @@ pub enum Format {
     /// target format catalog in the root README; do not build real functionality on top of it.
     PlainText,
 
+    // ─── Image — first real, file-shaped category ──────────────────────────────────────────
+    //
+    // See `crate::formats::image` module docs for why BMP/QOI specifically (both cheap to
+    // hand-roll, deterministic/lossless, no new dependency) rather than the full target catalog
+    // (PNG/JPEG/WebP/...) in one shot.
+    /// Uncompressed, 24-bit Windows BMP.
+    Bmp,
+    /// [QOI](https://qoiformat.org/) ("Quite OK Image") — a small, deterministic lossless format.
+    Qoi,
+
     // ─── Units — one variant per category, not per unit ────────────────────────────────────
     //
     // See `crate::formats::units` module docs for why: units aren't file-shaped, so the actual
@@ -79,6 +89,8 @@ impl Format {
     pub fn id(&self) -> &'static str {
         match self {
             Format::PlainText => "plain_text",
+            Format::Bmp => "bmp",
+            Format::Qoi => "qoi",
             Format::UnitsLength => "units_length",
             Format::UnitsMass => "units_mass",
             Format::UnitsVolume => "units_volume",
@@ -94,6 +106,7 @@ impl Format {
     pub fn category(&self) -> Category {
         match self {
             Format::PlainText => Category::Text,
+            Format::Bmp | Format::Qoi => Category::Image,
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -116,6 +129,8 @@ impl Format {
     pub fn mime(&self) -> &'static str {
         match self {
             Format::PlainText => "text/plain",
+            Format::Bmp => "image/bmp",
+            Format::Qoi => "image/qoi",
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -132,6 +147,8 @@ impl Format {
     pub fn extensions(&self) -> &'static [&'static str] {
         match self {
             Format::PlainText => &["txt"],
+            Format::Bmp => &["bmp"],
+            Format::Qoi => &["qoi"],
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -154,6 +171,7 @@ impl Format {
     pub fn can_read(&self) -> bool {
         match self {
             Format::PlainText => true,
+            Format::Bmp | Format::Qoi => true,
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -169,6 +187,7 @@ impl Format {
     pub fn can_write(&self) -> bool {
         match self {
             Format::PlainText => true,
+            Format::Bmp | Format::Qoi => true,
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
