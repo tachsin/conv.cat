@@ -16,11 +16,13 @@
 //! PNG entry doesn't (every icon size, Vista and later).
 //!
 //! An ICO can hold multiple sizes of the same image; this crate's `Format`/`RawImage` model is
-//! one image in, one image out, so [`decode`] picks the single largest entry by declared
-//! width × height (ties keep the first one encountered) and decodes only that one — an ICO
-//! containing an image this crate can decode at some *other* size doesn't get a second attempt at
-//! a smaller entry, matching the "honest gap, don't guess" spirit of the rest of this crate rather
-//! than adding cross-entry fallback logic for a rare case.
+//! one image in, one image out, so [`decode`] picks the single largest *in-bounds* entry by
+//! declared width × height (ties keep the first one encountered; an entry whose declared
+//! offset/size don't actually fit in the file is skipped rather than shadowing a smaller, valid
+//! entry) and decodes only that one — an ICO containing an image this crate can decode at some
+//! *other* size doesn't get a second attempt at a smaller entry if the chosen one turns out to
+//! use an unsupported bit depth or colour type, matching the "honest gap, don't guess" spirit of
+//! the rest of this crate rather than adding cross-entry fallback logic for a rare case.
 
 use super::png;
 use super::raster::{checked_rgba_len, RawImage};
@@ -87,14 +89,22 @@ pub fn decode(input: &[u8], options: &ConvertOptions) -> Result<RawImage, Conver
         let bytes_in_res = read_u32_le(input, entry_off + 8) as usize;
         let image_offset = read_u32_le(input, entry_off + 12) as usize;
 
+        // Only a candidate if its declared data actually fits in the file — a larger entry with
+        // a corrupt offset/size must not shadow a smaller, genuinely decodable one.
+        let in_bounds = image_offset
+            .checked_add(bytes_in_res)
+            .is_some_and(|end| end <= input.len());
         let area = width * height;
-        if area > best_area {
+        if in_bounds && area > best_area {
             best_area = area;
             best_offset = image_offset;
             best_size = bytes_in_res;
         }
     }
 
+    if best_area == 0 {
+        return Err(malformed());
+    }
     let data_end = best_offset.checked_add(best_size).ok_or_else(malformed)?;
     let entry_data = input.get(best_offset..data_end).ok_or_else(malformed)?;
 
@@ -445,6 +455,81 @@ mod tests {
         let decoded = decode(&out, &ConvertOptions::default()).unwrap();
         assert_eq!(decoded.width, 6);
         assert_eq!(decoded.height, 6);
+    }
+
+    #[test]
+    fn decode_skips_an_out_of_bounds_entry_in_favor_of_a_valid_smaller_one() {
+        // A larger declared entry with a bogus offset/size must not shadow a smaller, genuinely
+        // decodable one — Sourcery's review of this PR caught the earlier version validating
+        // bounds only *after* picking the "best" (largest-declared) entry.
+        let valid = checkerboard(2, 2);
+        let valid_png = png::encode(&valid, &ConvertOptions::default()).unwrap();
+
+        let mut out = Vec::new();
+        out.extend_from_slice(&0u16.to_le_bytes());
+        out.extend_from_slice(&RESOURCE_TYPE_ICON.to_le_bytes());
+        out.extend_from_slice(&2u16.to_le_bytes());
+
+        let first_entry_off = ICONDIR_LEN as u32;
+        let second_entry_off = first_entry_off + ICONDIRENTRY_LEN as u32;
+        let valid_offset = second_entry_off + ICONDIRENTRY_LEN as u32;
+
+        // Entry 0: declares the *larger* size (8x8) but an offset/size that point nowhere real.
+        out.push(8);
+        out.push(8);
+        out.extend_from_slice(&[0, 0]);
+        out.extend_from_slice(&1u16.to_le_bytes());
+        out.extend_from_slice(&32u16.to_le_bytes());
+        out.extend_from_slice(&1_000_000u32.to_le_bytes()); // bytes_in_res
+        out.extend_from_slice(&1_000_000u32.to_le_bytes()); // image_offset, past the real file
+
+        // Entry 1: declares the smaller size, pointing at real, valid PNG bytes.
+        out.push(2);
+        out.push(2);
+        out.extend_from_slice(&[0, 0]);
+        out.extend_from_slice(&1u16.to_le_bytes());
+        out.extend_from_slice(&32u16.to_le_bytes());
+        out.extend_from_slice(&(valid_png.len() as u32).to_le_bytes());
+        out.extend_from_slice(&valid_offset.to_le_bytes());
+
+        out.extend_from_slice(&valid_png);
+
+        let decoded = decode(&out, &ConvertOptions::default()).unwrap();
+        assert_eq!(decoded.width, 2);
+        assert_eq!(decoded.height, 2);
+    }
+
+    #[test]
+    fn decode_retags_a_malformed_embedded_png_error_as_ico_not_png() {
+        // Starts with the real PNG signature (so the PNG-vs-DIB dispatch in `decode` picks the
+        // PNG path) but is truncated immediately after, so `png::decode` fails. That failure must
+        // come back tagged `Format::Ico` — what the caller actually asked to convert — not
+        // `Format::Png`, an implementation detail of how this entry happens to be stored. Proves
+        // `tag_as_ico` actually runs, not just that decoding a bad ICO fails with *some* error.
+        let bogus_png = png::SIGNATURE.to_vec();
+
+        let mut out = Vec::new();
+        out.extend_from_slice(&0u16.to_le_bytes());
+        out.extend_from_slice(&RESOURCE_TYPE_ICON.to_le_bytes());
+        out.extend_from_slice(&1u16.to_le_bytes());
+
+        let entry_offset = (ICONDIR_LEN + ICONDIRENTRY_LEN) as u32;
+        out.push(2);
+        out.push(2);
+        out.extend_from_slice(&[0, 0]);
+        out.extend_from_slice(&1u16.to_le_bytes());
+        out.extend_from_slice(&32u16.to_le_bytes());
+        out.extend_from_slice(&(bogus_png.len() as u32).to_le_bytes());
+        out.extend_from_slice(&entry_offset.to_le_bytes());
+        out.extend_from_slice(&bogus_png);
+
+        let result = decode(&out, &ConvertOptions::default());
+        assert!(matches!(
+            result,
+            Err(ConvertError::MalformedInput {
+                format: Format::Ico
+            })
+        ));
     }
 
     struct CancelAfterNPolls {
