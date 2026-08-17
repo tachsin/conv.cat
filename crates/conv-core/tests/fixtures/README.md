@@ -56,14 +56,21 @@ without review.
 
 ## What exists today
 
-Only `text/plain_text/` — golden fixtures for `IdentityConverter`, the placeholder
-`PlainText -> PlainText` passthrough that exercises the registry/dispatch pipeline (see
-`crates/conv-core/src/formats/identity.rs`). No real format converter has landed yet (image,
-units, text are all still open backlog tickets), so there is no `.bad` fixture yet either —
-`IdentityConverter` performs no parsing and has no malformed-input failure mode to exercise. The
-malformed-input harness itself (panic containment + hang timeout) is proven independently, without
-needing a real parser, in `crates/conv-core/tests/golden_harness_selftest.rs`.
+- `text/plain_text/` — golden fixtures for `IdentityConverter`, the placeholder
+  `PlainText -> PlainText` passthrough that exercises the registry/dispatch pipeline (see
+  `crates/conv-core/src/formats/identity.rs`). No `.bad` fixture here — `IdentityConverter`
+  performs no parsing and has no malformed-input failure mode to exercise. The malformed-input
+  harness itself (panic containment + hang timeout) is proven independently, without needing a
+  real parser, in `crates/conv-core/tests/golden_harness_selftest.rs`.
+- `units/<category>/` — one directory per in-scope units category (`length`, `temperature`,
+  `fuel_consumption`, `life_age`, `clothing_size`, ...), see `crates/conv-core/src/formats/units/`.
+- `image/{bmp,qoi,png}/` — the raster hub (see `crates/conv-core/src/formats/image/`): every
+  ordered pair among BMP/QOI/PNG, plus malformed-input cases per format. PNG's harder decoder
+  cases (real dynamic-Huffman-compressed input, every PNG scanline filter type) are covered as
+  Rust unit tests in `png.rs` itself instead of fixtures here — see that module's doc comment for
+  why: they check the codec against an independently-built PNG, not the public `conv_core::convert`
+  API this suite is for.
 
-The first converter that actually parses its input (image conversion is next, backlog ticket
-`f737b331`) is expected to add its own `<category>/<format>/` directory here, at least one valid
-golden pair, and at least one `.bad` fixture — see `docs/adding-a-format.md` Step 4.
+Text/data conversion (CSV, JSON, HTML, Markdown) is still an open backlog ticket and has no
+directory here yet. Adding one follows the same shape as the categories above — see
+`docs/adding-a-format.md` Step 4.

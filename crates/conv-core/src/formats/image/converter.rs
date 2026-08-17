@@ -3,7 +3,7 @@
 //! `crate::Converter::convert`'s own rustdoc names as the expected shape for a shared raster
 //! implementation.
 
-use super::{bmp, qoi, raster::RawImage};
+use super::{bmp, png, qoi, raster::RawImage};
 use crate::{ConvertError, ConvertOptions, Converter, Format};
 
 /// Decodes `from`, then encodes as `to`. Registered for every raster `(from, to)` pair this crate
@@ -30,6 +30,7 @@ impl Converter for RasterConverter {
         match to {
             Format::Bmp => bmp::encode(&image, options),
             Format::Qoi => qoi::encode(&image, options),
+            Format::Png => png::encode(&image, options),
             _ => Err(ConvertError::UnsupportedPair { from, to }),
         }
     }
@@ -39,6 +40,7 @@ fn decode(input: &[u8], from: Format, options: &ConvertOptions) -> Result<RawIma
     match from {
         Format::Bmp => bmp::decode(input, options),
         Format::Qoi => qoi::decode(input, options),
+        Format::Png => png::decode(input, options),
         _ => Err(ConvertError::UnsupportedPair { from, to: from }),
     }
 }

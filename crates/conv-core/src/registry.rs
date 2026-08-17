@@ -44,13 +44,17 @@ pub enum Format {
 
     // ─── Image — first real, file-shaped category ──────────────────────────────────────────
     //
-    // See `crate::formats::image` module docs for why BMP/QOI specifically (both cheap to
-    // hand-roll, deterministic/lossless, no new dependency) rather than the full target catalog
-    // (PNG/JPEG/WebP/...) in one shot.
+    // See `crate::formats::image` module docs for why BMP/QOI/PNG specifically (all hand-rolled,
+    // deterministic/lossless, no new dependency) rather than the full target catalog
+    // (JPEG/WebP/...) in one shot.
     /// Uncompressed, 24-bit Windows BMP.
     Bmp,
     /// [QOI](https://qoiformat.org/) ("Quite OK Image") — a small, deterministic lossless format.
     Qoi,
+    /// PNG, 8-bit RGB/RGBA (color types 2/6) only — see `crate::formats::image::png` module docs
+    /// for the other legal PNG variants (palette, grayscale, other bit depths, interlacing) this
+    /// crate doesn't decode yet.
+    Png,
 
     // ─── Units — one variant per category, not per unit ────────────────────────────────────
     //
@@ -91,6 +95,7 @@ impl Format {
             Format::PlainText => "plain_text",
             Format::Bmp => "bmp",
             Format::Qoi => "qoi",
+            Format::Png => "png",
             Format::UnitsLength => "units_length",
             Format::UnitsMass => "units_mass",
             Format::UnitsVolume => "units_volume",
@@ -106,7 +111,7 @@ impl Format {
     pub fn category(&self) -> Category {
         match self {
             Format::PlainText => Category::Text,
-            Format::Bmp | Format::Qoi => Category::Image,
+            Format::Bmp | Format::Qoi | Format::Png => Category::Image,
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -131,6 +136,7 @@ impl Format {
             Format::PlainText => "text/plain",
             Format::Bmp => "image/bmp",
             Format::Qoi => "image/qoi",
+            Format::Png => "image/png",
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -149,6 +155,7 @@ impl Format {
             Format::PlainText => &["txt"],
             Format::Bmp => &["bmp"],
             Format::Qoi => &["qoi"],
+            Format::Png => &["png"],
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -171,7 +178,7 @@ impl Format {
     pub fn can_read(&self) -> bool {
         match self {
             Format::PlainText => true,
-            Format::Bmp | Format::Qoi => true,
+            Format::Bmp | Format::Qoi | Format::Png => true,
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -187,7 +194,7 @@ impl Format {
     pub fn can_write(&self) -> bool {
         match self {
             Format::PlainText => true,
-            Format::Bmp | Format::Qoi => true,
+            Format::Bmp | Format::Qoi | Format::Png => true,
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume

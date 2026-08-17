@@ -18,6 +18,7 @@ const KNOWN_FORMATS: &[Format] = &[
     Format::PlainText,
     Format::Bmp,
     Format::Qoi,
+    Format::Png,
     Format::UnitsLength,
     Format::UnitsMass,
     Format::UnitsVolume,
