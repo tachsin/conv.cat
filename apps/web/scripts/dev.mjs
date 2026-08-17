@@ -9,7 +9,9 @@ import { createServer } from 'node:net';
 import { spawn } from 'node:child_process';
 
 const BASE_PORT = Number(process.env.PORT) || 3011;
-const MAX_ATTEMPTS = 50;
+// Configurable so a machine running an unusual number of workspaces side by side can widen the
+// search instead of the script just giving up.
+const MAX_ATTEMPTS = Number(process.env.PORT_SCAN_MAX_ATTEMPTS) || 50;
 
 function isPortFree(port) {
   return new Promise((resolve) => {
@@ -25,7 +27,12 @@ async function findFreePort(startPort) {
     const port = startPort + offset;
     if (await isPortFree(port)) return port;
   }
-  throw new Error(`No free port found in range ${startPort}-${startPort + MAX_ATTEMPTS - 1}`);
+  const endPort = startPort + MAX_ATTEMPTS - 1;
+  console.error(
+    `\n  conv.cat dev: no free port in range ${startPort}-${endPort}. ` +
+      `Set PORT to start from elsewhere, or PORT_SCAN_MAX_ATTEMPTS to widen the search.\n`,
+  );
+  process.exit(1);
 }
 
 const port = await findFreePort(BASE_PORT);

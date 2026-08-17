@@ -41,10 +41,21 @@ export function CommandPalette({
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        setOpen((current) => !current);
-      }
+      if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey)) return;
+
+      // Cmd/Ctrl+K is also a native "focus search" shortcut in plenty of form fields — don't
+      // hijack it out from under someone who's mid-typing in one. The palette's own search box
+      // is exempt, so the same shortcut still closes the palette while it's focused.
+      const target = event.target;
+      const isEditable =
+        target !== searchRef.current &&
+        (target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement ||
+          (target instanceof HTMLElement && target.isContentEditable));
+      if (isEditable) return;
+
+      event.preventDefault();
+      setOpen((current) => !current);
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -53,6 +64,14 @@ export function CommandPalette({
   function run(action: () => void) {
     action();
     setOpen(false);
+  }
+
+  function triggerFilePicker() {
+    inputRef.current?.click();
+  }
+
+  function openSource() {
+    window.open('https://github.com/tachsin/conv.cat', '_blank');
   }
 
   return (
@@ -101,7 +120,7 @@ export function CommandPalette({
                       <Command.Empty className="format-picker-empty">No matches.</Command.Empty>
 
                       <Command.Group heading="Actions" className="command-palette-group">
-                        <Command.Item className="format-picker-item" onSelect={() => run(() => inputRef.current?.click())}>
+                        <Command.Item className="format-picker-item" onSelect={() => run(triggerFilePicker)}>
                           <FilePlus aria-hidden="true" className="h-4 w-4 text-base-content/50" />
                           Add files…
                         </Command.Item>
@@ -119,12 +138,7 @@ export function CommandPalette({
                           )}
                           Switch to {isDark ? 'light' : 'dark'} theme
                         </Command.Item>
-                        <Command.Item
-                          className="format-picker-item"
-                          onSelect={() =>
-                            run(() => window.open('https://github.com/tachsin/conv.cat', '_blank', 'noreferrer noopener'))
-                          }
-                        >
+                        <Command.Item className="format-picker-item" onSelect={() => run(openSource)}>
                           <Code2 aria-hidden="true" className="h-4 w-4 text-base-content/50" />
                           View source on GitHub
                         </Command.Item>

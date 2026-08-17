@@ -36,6 +36,8 @@ export function FormatPicker({ id, label, placeholder, value, options, disabled,
           id={id}
           type="button"
           aria-label={label}
+          aria-haspopup="listbox"
+          aria-expanded={open}
           disabled={disabled}
           className="format-picker-trigger"
         >
