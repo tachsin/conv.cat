@@ -62,7 +62,7 @@ is a deliberate decision, not a default.
 | --- | --- |
 | 🚧 | First vertical slice: **units**, end to end (Rust → WASM → web) — chosen because it's pure computation with no binary parsing, so a pipeline bug and a domain bug can't be confused for each other. Shipped as a representative 8-category subset (length, mass, volume, cooking, temperature, fuel consumption, life age/cat-dog years, clothing sizes) proving the pipeline through a real (non-product) browser page — see `crates/conv-core/src/formats/units/mod.rs` and `packages/data/src/units/README.md`. The remaining ~41 legacy categories are a mechanical follow-up, not yet a ticket. |
 | ✅ | `apps/web` — the single-page converter shell: drag/drop, format detection and picking, progress, cancellation, download, and the "nothing is uploaded" proof made visible (not just claimed) via `PrivacyBadge`, linking straight to the Worker's source line |
-| 🚧 | Image conversion ported to `conv-core` — BMP and QOI landed as the first file-shaped formats (see [the format catalog](#format-catalog--target-state)); the rest are a mechanical follow-up per format |
+| 🚧 | Image conversion ported to `conv-core` — BMP, QOI, and PNG landed (see [the format catalog](#format-catalog--target-state)); the rest are a mechanical follow-up per format |
 | 💭 | Wire unit conversion into the `apps/web` shell itself — today units are reachable only through the standalone `apps/web/units-demo` QA page, because the shell's `fileFormats()` (`apps/web/src/lib/formats.ts`) deliberately filters to formats with a file extension, and a unit conversion (`(value, from, to) -> value`) has none. Needs its own UI paradigm (two dropdowns and a number field, no drop zone), not yet scoped into a ticket. |
 | 💭 | UI test coverage for `apps/web` — the `js` CI job lints, typechecks, and builds the shell but never runs it; the drop → detect → convert → download flow has no automated check today. Not yet scoped into a ticket (Playwright against the real WASM build is the likely shape, mirroring the golden-file suite's "test against what actually ships" principle). |
 
@@ -101,7 +101,7 @@ exists yet, regardless of what the legacy site currently offers on the live doma
 | Category | Target formats | Status |
 | --- | --- | --- |
 | Units | Length, mass, temperature, volume, clothing sizes, cooking measurements, cat/dog years, and more | 🚧 In progress — 8 of 49 legacy categories ported, Phase 2 vertical slice |
-| Images | PNG, JPEG, WebP, AVIF, BMP, GIF, ICO, QOI, HEIC (decode) | 🚧 In progress — 2 of 9 target formats ported (BMP, QOI), Phase 2 |
+| Images | PNG, JPEG, WebP, AVIF, BMP, GIF, ICO, QOI, HEIC (decode) | 🚧 In progress — 3 of 9 target formats ported (BMP, QOI, PNG), Phase 2 |
 | Text & Data | CSV, JSON, HTML, Markdown | 📋 Planned — Phase 3 |
 | Video & Audio | Whatever ffmpeg-wasm supports, via `packages/media` | 📋 Planned — Phase 3 |
 | Timezones | IANA zones, interactive world map | 📋 Planned — Phase 3 |

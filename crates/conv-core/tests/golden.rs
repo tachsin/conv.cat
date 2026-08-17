@@ -82,6 +82,83 @@ fn image_qoi_corrupted_end_marker_is_a_typed_error() {
     );
 }
 
+// ─── image / png ───────────────────────────────────────────────────────────
+//
+// PNG joins the BMP/QOI raster hub (see `crates/conv-core/src/formats/image/png.rs` module docs
+// for why PNG specifically, and why hand-rolling a real DEFLATE codec was worth it over pulling in
+// a dependency). Same shared checkerboard fixture as BMP/QOI above, both directions, plus the
+// malformed-input corpus. The decoder's harder cases (real dynamic-Huffman compression, all five
+// PNG scanline filter types against an independently-built PNG file, not just this crate's own
+// encoder's output) are covered as Rust unit tests in `png.rs` itself, not here — this suite
+// proves the *public* `conv_core::convert` API end to end, not the codec's internals.
+
+#[test]
+fn image_bmp_to_png_checkerboard() {
+    support::run_golden_case(
+        "image/png/checker_4x4.bmp",
+        "image/png/checker_4x4.png",
+        Format::Bmp,
+        Format::Png,
+    );
+}
+
+#[test]
+fn image_qoi_to_png_checkerboard() {
+    support::run_golden_case(
+        "image/png/checker_4x4.qoi",
+        "image/png/checker_4x4.png",
+        Format::Qoi,
+        Format::Png,
+    );
+}
+
+#[test]
+fn image_png_to_bmp_checkerboard() {
+    support::run_golden_case(
+        "image/bmp/checker_4x4.png",
+        "image/bmp/checker_4x4.bmp",
+        Format::Png,
+        Format::Bmp,
+    );
+}
+
+#[test]
+fn image_png_to_qoi_checkerboard() {
+    support::run_golden_case(
+        "image/qoi/checker_4x4.png",
+        "image/qoi/checker_4x4.qoi",
+        Format::Png,
+        Format::Qoi,
+    );
+}
+
+#[test]
+fn image_png_bad_signature_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/qoi/bad_signature.png.bad",
+        Format::Png,
+        Format::Qoi,
+    );
+}
+
+#[test]
+fn image_png_truncated_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/bmp/truncated.png.bad",
+        Format::Png,
+        Format::Bmp,
+    );
+}
+
+#[test]
+fn image_png_corrupted_chunk_crc_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/bmp/bad_crc.png.bad",
+        Format::Png,
+        Format::Bmp,
+    );
+}
+
 // ─── text / plain_text ──────────────────────────────────────────────────────
 //
 // `IdentityConverter` (PlainText -> PlainText) is a passthrough, so every golden file here is
@@ -490,6 +567,14 @@ fn fixtures_tree_has_no_stray_or_orphaned_files() {
         "image/bmp/bad_magic.qoi.bad",
         "image/bmp/trailing_data.qoi.bad",
         "image/bmp/bad_end_marker.qoi.bad",
+        "image/qoi/checker_4x4.png",
+        "image/qoi/bad_signature.png.bad",
+        "image/bmp/checker_4x4.png",
+        "image/bmp/truncated.png.bad",
+        "image/bmp/bad_crc.png.bad",
+        "image/png/checker_4x4.bmp",
+        "image/png/checker_4x4.qoi",
+        "image/png/checker_4x4.png",
         "text/plain_text/hello.input.txt",
         "text/plain_text/hello.golden.txt",
         "text/plain_text/empty.input.txt",
