@@ -21,6 +21,7 @@ const KNOWN_FORMATS: &[Format] = &[
     Format::Png,
     Format::Ico,
     Format::Webp,
+    Format::Gif,
     Format::UnitsLength,
     Format::UnitsMass,
     Format::UnitsVolume,

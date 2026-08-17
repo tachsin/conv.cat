@@ -64,15 +64,16 @@ without review.
   real parser, in `crates/conv-core/tests/golden_harness_selftest.rs`.
 - `units/<category>/` — one directory per in-scope units category (`length`, `temperature`,
   `fuel_consumption`, `life_age`, `clothing_size`, ...), see `crates/conv-core/src/formats/units/`.
-- `image/{bmp,qoi,png,ico,webp}/` — the raster hub (see `crates/conv-core/src/formats/image/`):
-  every ordered pair among BMP/QOI/PNG/ICO/WebP (lossless only), plus malformed-input cases per
+- `image/{bmp,qoi,png,ico,webp,gif}/` — the raster hub (see `crates/conv-core/src/formats/image/`):
+  every ordered pair among BMP/QOI/PNG/ICO/WebP (lossless only)/GIF, plus malformed-input cases per
   format. The harder decoder cases — PNG's real dynamic-Huffman-compressed input and every
   scanline filter type, ICO's real 32-bit raw-DIB entry, WebP's predictor transform/meta-prefix
-  groups/heavy backward references/both color-indexing pixel-bundling factors, all from real files
-  built by independent encoders (Pillow/libwebp) — are covered as Rust unit tests in
-  `png.rs`/`ico.rs`/`webp.rs` themselves instead of fixtures here — see those modules' doc comments
-  for why: they check the codec against independently-built input, not the public
-  `conv_core::convert` API this suite is for.
+  groups/heavy backward references/both color-indexing pixel-bundling factors, GIF's real
+  interlaced input and full random 233-color palette — all from real files built by independent
+  encoders (Pillow/libwebp) — are covered as Rust unit tests in `png.rs`/`ico.rs`/`webp.rs`/`gif.rs`
+  themselves instead of fixtures here — see those modules' doc comments for why: they check the
+  codec against independently-built input, not the public `conv_core::convert` API this suite is
+  for.
 
 Text/data conversion (CSV, JSON, HTML, Markdown) is still an open backlog ticket and has no
 directory here yet. Adding one follows the same shape as the categories above — see
