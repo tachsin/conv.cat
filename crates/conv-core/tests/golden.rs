@@ -255,6 +255,116 @@ fn image_ico_cursor_resource_type_is_a_typed_error() {
     );
 }
 
+// ─── image / webp ──────────────────────────────────────────────────────────
+//
+// WebP (lossless/VP8L only) joins the raster hub — see
+// `crates/conv-core/src/formats/image/vp8l.rs`/`webp.rs` module docs for why this is the biggest
+// step in the raster hub so far (a bespoke LZ77/Huffman scheme, not DEFLATE; four pixel
+// transforms; a color cache; meta-prefix groups) and why only the lossless half is in scope. Same
+// shared checkerboard fixture as BMP/QOI/PNG/ICO above. The decoder's harder cases (real files
+// built by Pillow/libwebp exercising the predictor transform, meta-prefix groups, heavy backward
+// references, and both color-indexing pixel-bundling factors) are Rust unit tests in `webp.rs`
+// itself, same split PNG's and ICO's suites use for their own harder decoder cases — this suite
+// proves the *public* `conv_core::convert` API end to end, not the codec's internals.
+
+#[test]
+fn image_bmp_to_webp_checkerboard() {
+    support::run_golden_case(
+        "image/webp/checker_4x4.bmp",
+        "image/webp/checker_4x4.webp",
+        Format::Bmp,
+        Format::Webp,
+    );
+}
+
+#[test]
+fn image_qoi_to_webp_checkerboard() {
+    support::run_golden_case(
+        "image/webp/checker_4x4.qoi",
+        "image/webp/checker_4x4.webp",
+        Format::Qoi,
+        Format::Webp,
+    );
+}
+
+#[test]
+fn image_png_to_webp_checkerboard() {
+    support::run_golden_case(
+        "image/webp/checker_4x4.png",
+        "image/webp/checker_4x4.webp",
+        Format::Png,
+        Format::Webp,
+    );
+}
+
+#[test]
+fn image_ico_to_webp_checkerboard() {
+    support::run_golden_case(
+        "image/webp/checker_4x4.ico",
+        "image/webp/checker_4x4.webp",
+        Format::Ico,
+        Format::Webp,
+    );
+}
+
+#[test]
+fn image_webp_to_bmp_checkerboard() {
+    support::run_golden_case(
+        "image/bmp/checker_4x4.webp",
+        "image/bmp/checker_4x4.bmp",
+        Format::Webp,
+        Format::Bmp,
+    );
+}
+
+#[test]
+fn image_webp_to_qoi_checkerboard() {
+    support::run_golden_case(
+        "image/qoi/checker_4x4.webp",
+        "image/qoi/checker_4x4.qoi",
+        Format::Webp,
+        Format::Qoi,
+    );
+}
+
+#[test]
+fn image_webp_to_png_checkerboard() {
+    support::run_golden_case(
+        "image/png/checker_4x4.webp",
+        "image/png/checker_4x4.png",
+        Format::Webp,
+        Format::Png,
+    );
+}
+
+#[test]
+fn image_webp_to_ico_checkerboard() {
+    support::run_golden_case(
+        "image/ico/checker_4x4.webp",
+        "image/ico/checker_4x4.ico",
+        Format::Webp,
+        Format::Ico,
+    );
+}
+
+#[test]
+fn image_webp_bad_riff_header_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/bmp/bad_riff.webp.bad",
+        Format::Webp,
+        Format::Bmp,
+    );
+}
+
+#[test]
+fn image_webp_truncated_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/qoi/truncated.webp.bad",
+        Format::Webp,
+        Format::Qoi,
+    );
+}
+
 // ─── text / plain_text ──────────────────────────────────────────────────────
 //
 // `IdentityConverter` (PlainText -> PlainText) is a passthrough, so every golden file here is
@@ -681,6 +791,17 @@ fn fixtures_tree_has_no_stray_or_orphaned_files() {
         "image/bmp/zero_entries.ico.bad",
         "image/qoi/truncated.ico.bad",
         "image/png/cursor_type.ico.bad",
+        "image/webp/checker_4x4.bmp",
+        "image/webp/checker_4x4.qoi",
+        "image/webp/checker_4x4.png",
+        "image/webp/checker_4x4.ico",
+        "image/webp/checker_4x4.webp",
+        "image/bmp/checker_4x4.webp",
+        "image/qoi/checker_4x4.webp",
+        "image/png/checker_4x4.webp",
+        "image/ico/checker_4x4.webp",
+        "image/bmp/bad_riff.webp.bad",
+        "image/qoi/truncated.webp.bad",
         "text/plain_text/hello.input.txt",
         "text/plain_text/hello.golden.txt",
         "text/plain_text/empty.input.txt",

@@ -20,6 +20,7 @@ const KNOWN_FORMATS: &[Format] = &[
     Format::Qoi,
     Format::Png,
     Format::Ico,
+    Format::Webp,
     Format::UnitsLength,
     Format::UnitsMass,
     Format::UnitsVolume,

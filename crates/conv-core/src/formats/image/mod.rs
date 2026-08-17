@@ -1,19 +1,25 @@
 //! Raster image conversions — the first file-shaped category ported into `conv-core`.
 //!
 //! Scope today: [`Format::Bmp`](crate::Format::Bmp), [`Format::Qoi`](crate::Format::Qoi),
-//! [`Format::Png`](crate::Format::Png), and [`Format::Ico`](crate::Format::Ico), every direction
-//! between them. This crate's own module docs say "zero dependencies today; any dependency added
-//! here needs to earn its place", and the release WASM artifact has a hard, CI-enforced size
-//! budget (`.wasm-size-budget`) that a decoder-heavy dependency like the general-purpose `image`
-//! crate would blow through — so every format here is hand-rolled rather than pulled in. BMP (no
+//! [`Format::Png`](crate::Format::Png), [`Format::Ico`](crate::Format::Ico), and
+//! [`Format::Webp`](crate::Format::Webp) (lossless only), every direction between them. This
+//! crate's own module docs say "zero dependencies today; any dependency added here needs to earn
+//! its place", and the release WASM artifact has a hard, CI-enforced size budget
+//! (`.wasm-size-budget`) that a decoder-heavy dependency like the general-purpose `image` crate
+//! would blow through — so every format here is hand-rolled rather than pulled in. BMP (no
 //! compression) and QOI (a small, well-defined algorithm — see [`qoi`]) were cheap first steps;
 //! PNG (see [`png`]) is the harder case this scope-out originally flagged, needing a real DEFLATE
 //! codec (see [`zlib`]) rather than just chunk framing. ICO (see [`ico`]) is a different kind of
 //! easy: not a codec at all, just a directory of entries that are themselves PNG (or, for
 //! decoding legacy files, raw bitmap) data — it costs almost nothing once PNG already exists.
-//! JPEG/WebP remain out of scope — see [`png`]'s module docs for why JPEG specifically is a
-//! bigger step than PNG was, not just "more of the same"; WebP is bigger still (two unrelated
-//! codecs, lossless VP8L and lossy VP8, bundled under one container).
+//! WebP (see [`webp`] and [`vp8l`]) is the biggest step yet: its own bespoke LZ77-and-Huffman
+//! scheme (not DEFLATE), four pixel transforms, a color cache, and a "meta prefix code" mechanism
+//! letting different image regions use different Huffman tables — bigger than PNG's DEFLATE, not
+//! smaller, contrary to how it might look from the outside as "just another PNG-shaped format".
+//! Only the lossless (VP8L) half is in scope; lossy WebP (`VP8 `) is a real intra-frame video
+//! codec — DCT/WHT transform, boolean arithmetic coding, block prediction — and out of scope for
+//! the same reason JPEG is (see [`png`]'s module docs), and needs its own from-scratch spec dive
+//! this crate hasn't taken on.
 //!
 //! [`raster`] is the shared decode target every format here converts through:
 //! `bytes -> RawImage -> bytes`, so a new raster format only has to implement one decode and one
@@ -26,6 +32,8 @@ mod ico;
 mod png;
 mod qoi;
 mod raster;
+mod vp8l;
+mod webp;
 mod zlib;
 
 pub use converter::RasterConverter;
@@ -36,8 +44,14 @@ use crate::Format;
 ///
 /// `default_registry` in `crates/conv-core/src/lib.rs` registers [`RasterConverter`] for every
 /// ordered pair drawn from this list rather than one hand-written `registry.register(...)` call
-/// per direction — so landing a new raster format (JPEG, WebP, ...) is: add the `Format` variant,
+/// per direction — so landing a new raster format (JPEG, AVIF, ...) is: add the `Format` variant,
 /// teach [`converter::RasterConverter`]'s `decode`/`convert` match arms about it, add it here.
 /// Every existing raster format becomes convertible to and from it automatically, no registration
 /// call to remember.
-pub const FORMATS: &[Format] = &[Format::Bmp, Format::Qoi, Format::Png, Format::Ico];
+pub const FORMATS: &[Format] = &[
+    Format::Bmp,
+    Format::Qoi,
+    Format::Png,
+    Format::Ico,
+    Format::Webp,
+];
