@@ -57,6 +57,7 @@ mod tests {
         match format {
             Format::Bmp => bmp::encode(image, options),
             Format::Qoi => qoi::encode(image, options),
+            Format::Png => png::encode(image, options),
             _ => panic!(
                 "encode_as has no encoder wired up for {format:?} — it was added to \
                  `formats::image::FORMATS` but this test helper wasn't taught how to produce \
