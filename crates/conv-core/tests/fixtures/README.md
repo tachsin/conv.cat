@@ -64,12 +64,13 @@ without review.
   real parser, in `crates/conv-core/tests/golden_harness_selftest.rs`.
 - `units/<category>/` — one directory per in-scope units category (`length`, `temperature`,
   `fuel_consumption`, `life_age`, `clothing_size`, ...), see `crates/conv-core/src/formats/units/`.
-- `image/{bmp,qoi,png}/` — the raster hub (see `crates/conv-core/src/formats/image/`): every
-  ordered pair among BMP/QOI/PNG, plus malformed-input cases per format. PNG's harder decoder
-  cases (real dynamic-Huffman-compressed input, every PNG scanline filter type) are covered as
-  Rust unit tests in `png.rs` itself instead of fixtures here — see that module's doc comment for
-  why: they check the codec against an independently-built PNG, not the public `conv_core::convert`
-  API this suite is for.
+- `image/{bmp,qoi,png,ico}/` — the raster hub (see `crates/conv-core/src/formats/image/`): every
+  ordered pair among BMP/QOI/PNG/ICO, plus malformed-input cases per format. The harder decoder
+  cases for PNG (real dynamic-Huffman-compressed input, every PNG scanline filter type) and ICO
+  (a real 32-bit raw-DIB entry from an independent encoder) are covered as Rust unit tests in
+  `png.rs`/`ico.rs` themselves instead of fixtures here — see those modules' doc comments for why:
+  they check the codec against independently-built input, not the public `conv_core::convert` API
+  this suite is for.
 
 Text/data conversion (CSV, JSON, HTML, Markdown) is still an open backlog ticket and has no
 directory here yet. Adding one follows the same shape as the categories above — see

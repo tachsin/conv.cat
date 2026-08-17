@@ -159,6 +159,102 @@ fn image_png_corrupted_chunk_crc_is_a_typed_error() {
     );
 }
 
+// ─── image / ico ───────────────────────────────────────────────────────────
+//
+// ICO joins the raster hub last — see `crates/conv-core/src/formats/image/ico.rs` module docs
+// for why it's a cheap addition once PNG exists (a directory wrapping PNG entries, not a new
+// codec). Same shared checkerboard fixture as BMP/QOI/PNG above. The decoder's harder case (a
+// real 32-bit raw-DIB entry from an independent encoder, since this crate's own encoder only
+// ever emits PNG-compressed entries) is a Rust unit test in `ico.rs` itself, same split PNG's
+// suite uses for its own harder decoder cases.
+
+#[test]
+fn image_bmp_to_ico_checkerboard() {
+    support::run_golden_case(
+        "image/ico/checker_4x4.bmp",
+        "image/ico/checker_4x4.ico",
+        Format::Bmp,
+        Format::Ico,
+    );
+}
+
+#[test]
+fn image_qoi_to_ico_checkerboard() {
+    support::run_golden_case(
+        "image/ico/checker_4x4.qoi",
+        "image/ico/checker_4x4.ico",
+        Format::Qoi,
+        Format::Ico,
+    );
+}
+
+#[test]
+fn image_png_to_ico_checkerboard() {
+    support::run_golden_case(
+        "image/ico/checker_4x4.png",
+        "image/ico/checker_4x4.ico",
+        Format::Png,
+        Format::Ico,
+    );
+}
+
+#[test]
+fn image_ico_to_bmp_checkerboard() {
+    support::run_golden_case(
+        "image/bmp/checker_4x4.ico",
+        "image/bmp/checker_4x4.bmp",
+        Format::Ico,
+        Format::Bmp,
+    );
+}
+
+#[test]
+fn image_ico_to_qoi_checkerboard() {
+    support::run_golden_case(
+        "image/qoi/checker_4x4.ico",
+        "image/qoi/checker_4x4.qoi",
+        Format::Ico,
+        Format::Qoi,
+    );
+}
+
+#[test]
+fn image_ico_to_png_checkerboard() {
+    support::run_golden_case(
+        "image/png/checker_4x4.ico",
+        "image/png/checker_4x4.png",
+        Format::Ico,
+        Format::Png,
+    );
+}
+
+#[test]
+fn image_ico_zero_entries_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/bmp/zero_entries.ico.bad",
+        Format::Ico,
+        Format::Bmp,
+    );
+}
+
+#[test]
+fn image_ico_truncated_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/qoi/truncated.ico.bad",
+        Format::Ico,
+        Format::Qoi,
+    );
+}
+
+#[test]
+fn image_ico_cursor_resource_type_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/png/cursor_type.ico.bad",
+        Format::Ico,
+        Format::Png,
+    );
+}
+
 // ─── text / plain_text ──────────────────────────────────────────────────────
 //
 // `IdentityConverter` (PlainText -> PlainText) is a passthrough, so every golden file here is
@@ -575,6 +671,16 @@ fn fixtures_tree_has_no_stray_or_orphaned_files() {
         "image/png/checker_4x4.bmp",
         "image/png/checker_4x4.qoi",
         "image/png/checker_4x4.png",
+        "image/ico/checker_4x4.bmp",
+        "image/ico/checker_4x4.qoi",
+        "image/ico/checker_4x4.png",
+        "image/ico/checker_4x4.ico",
+        "image/bmp/checker_4x4.ico",
+        "image/qoi/checker_4x4.ico",
+        "image/png/checker_4x4.ico",
+        "image/bmp/zero_entries.ico.bad",
+        "image/qoi/truncated.ico.bad",
+        "image/png/cursor_type.ico.bad",
         "text/plain_text/hello.input.txt",
         "text/plain_text/hello.golden.txt",
         "text/plain_text/empty.input.txt",
