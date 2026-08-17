@@ -570,6 +570,12 @@ pub(super) fn decode_image_stream(
     let total_pixels = width * height;
     let mut pixels = Vec::with_capacity(total_pixels);
     let mut since_check = PROGRESS_GRANULARITY;
+    // Scan position, maintained incrementally rather than recomputed from `pixels.len()` via
+    // `%`/`/` every iteration — cheap for the common literal/cache case (one comparison-and-carry
+    // instead of a division), and for a backward reference it collapses what would otherwise be
+    // an unavoidable division into exactly one (amortized over the whole run), not one per symbol.
+    let mut x = 0usize;
+    let mut y = 0usize;
 
     while pixels.len() < total_pixels {
         if since_check >= PROGRESS_GRANULARITY {
@@ -581,8 +587,6 @@ pub(super) fn decode_image_stream(
         }
 
         let group = if use_entropy_image == 1 {
-            let x = pixels.len() % width;
-            let y = pixels.len() / width;
             let meta = entropy_image[(y >> prefix_bits) * entropy_width + (x >> prefix_bits)];
             let idx = (((meta >> 16) & 0xff) << 8) | ((meta >> 8) & 0xff);
             groups.get(idx as usize).ok_or(Stop::Malformed)?
@@ -605,6 +609,11 @@ pub(super) fn decode_image_stream(
                 cache[color_cache_index(argb, cache_bits)] = argb;
             }
             since_check += 1;
+            x += 1;
+            if x == width {
+                x = 0;
+                y += 1;
+            }
         } else if sym < 256 + 24 {
             let length = prefix_decode_value(reader, u32::from(sym) - 256)?;
             let dist_sym = required(decode_symbol(reader, &group.distance))?;
@@ -635,12 +644,20 @@ pub(super) fn decode_image_stream(
                 }
             }
             since_check += length as usize;
+            let advanced = x + length as usize;
+            y += advanced / width;
+            x = advanced % width;
         } else {
             let cache_idx = (sym - 256 - 24) as usize;
             let argb = *cache.get(cache_idx).ok_or(Stop::Malformed)?;
             pixels.push(argb);
             cache[cache_idx] = argb;
             since_check += 1;
+            x += 1;
+            if x == width {
+                x = 0;
+                y += 1;
+            }
         }
     }
 
@@ -702,10 +719,13 @@ fn bits_for_count(n: usize) -> u32 {
 }
 
 /// How to write occurrences of a symbol from one channel's alphabet — the encode-side mirror of
-/// [`HuffmanTable`], with the same "single symbol needs zero bits" special case.
+/// [`HuffmanTable`], with the same "single symbol needs zero bits" special case. `Multi` is
+/// indexed directly by symbol (dense — every channel alphabet here is at most 280 symbols, all
+/// small u16s) rather than hashed: this is on the per-*pixel* encode path (up to four lookups per
+/// pixel, one per channel), so a direct index avoids paying hashing overhead there.
 enum EncodeTable {
     Single,
-    Multi(HashMap<u16, (u32, u8)>),
+    Multi(Vec<(u32, u8)>),
 }
 
 /// Assigns every symbol in `used` (sorted ascending — canonical order) the same code length, the
@@ -724,10 +744,12 @@ fn build_uniform_table(alphabet_size: usize, used: &BTreeSet<u16>) -> (Vec<u8>, 
     }
 
     let len = bits_for_count(used.len());
-    let mut codes = HashMap::with_capacity(used.len());
+    // Unused slots stay `(0, 0)` and are never read: `write_symbol` is only ever called with a
+    // symbol this same caller already collected into `used` before building this table.
+    let mut codes = vec![(0u32, 0u8); alphabet_size];
     for (code, &s) in used.iter().enumerate() {
         code_lengths[s as usize] = len as u8;
-        codes.insert(s, (reverse_bits(code as u32, len), len as u8));
+        codes[s as usize] = (reverse_bits(code as u32, len), len as u8);
     }
     (code_lengths, EncodeTable::Multi(codes))
 }
@@ -736,10 +758,7 @@ fn write_symbol(writer: &mut BitWriter, table: &EncodeTable, symbol: u16) {
     match table {
         EncodeTable::Single => {}
         EncodeTable::Multi(codes) => {
-            let &(code, len) = codes.get(&symbol).expect(
-                "write_symbol is only ever called with a symbol this table's caller collected \
-                 into `used` before building it",
-            );
+            let (code, len) = codes[symbol as usize];
             writer.write_bits(code, u32::from(len));
         }
     }
