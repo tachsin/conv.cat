@@ -22,3 +22,15 @@ mod qoi;
 mod raster;
 
 pub use converter::RasterConverter;
+
+use crate::Format;
+
+/// Every raster format [`RasterConverter`] can decode and encode today.
+///
+/// `default_registry` in `crates/conv-core/src/lib.rs` registers [`RasterConverter`] for every
+/// ordered pair drawn from this list rather than one hand-written `registry.register(...)` call
+/// per direction — so landing a new raster format (PNG, JPEG, ...) is: add the `Format` variant,
+/// teach [`converter::RasterConverter`]'s `decode`/`convert` match arms about it, add it here.
+/// Every existing raster format becomes convertible to and from it automatically, no registration
+/// call to remember.
+pub const FORMATS: &[Format] = &[Format::Bmp, Format::Qoi];

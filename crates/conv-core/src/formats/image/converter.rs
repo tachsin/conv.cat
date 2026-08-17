@@ -42,3 +42,55 @@ fn decode(input: &[u8], from: Format, options: &ConvertOptions) -> Result<RawIma
         _ => Err(ConvertError::UnsupportedPair { from, to: from }),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::formats::image::FORMATS;
+
+    /// Encodes `image` as `format`, for test setup only — a small, deliberately parallel
+    /// dispatch to [`convert`]'s own `match to { .. }` above, so a format missing from *either*
+    /// match is visible right next to the other in this same file.
+    fn encode_as(format: Format, image: &RawImage, options: &ConvertOptions) -> Vec<u8> {
+        match format {
+            Format::Bmp => bmp::encode(image, options),
+            Format::Qoi => qoi::encode(image, options),
+            _ => panic!(
+                "encode_as has no encoder wired up for {format:?} — it was added to \
+                 `formats::image::FORMATS` but this test helper wasn't taught how to produce \
+                 sample bytes for it"
+            ),
+        }
+        .expect("encoding a valid 1x1 RawImage should never fail")
+    }
+
+    /// Guards against [`FORMATS`] drifting from [`RasterConverter`]'s own `decode`/`convert`
+    /// match arms — the mismatch Sourcery's review of the PR that introduced `FORMATS` flagged:
+    /// if a format lands in the list but its match arm is forgotten, nothing fails to compile;
+    /// `RasterConverter::convert` just falls through to `ConvertError::UnsupportedPair` at
+    /// runtime for a pair that superficially looks registered. This test round-trips every
+    /// ordered pair `FORMATS` claims to support through the real `RasterConverter` and fails
+    /// loudly if any of them hit that fallback instead of actually converting.
+    #[test]
+    fn every_pair_in_formats_is_wired_up_in_decode_and_convert() {
+        let options = ConvertOptions::default();
+        let image = RawImage::new(1, 1, vec![10, 20, 30, 255], Format::Bmp)
+            .expect("a 1x1 RGBA image is always valid");
+        let converter = RasterConverter;
+
+        for &from in FORMATS {
+            let encoded = encode_as(from, &image, &options);
+            for &to in FORMATS {
+                if from == to {
+                    continue; // self-pairs are never registered — see `default_registry`
+                }
+                let result = converter.convert(&encoded, from, to, &options);
+                assert!(
+                    !matches!(result, Err(ConvertError::UnsupportedPair { .. })),
+                    "{from:?} -> {to:?} is listed in FORMATS but RasterConverter's decode/convert \
+                     match arms don't handle it"
+                );
+            }
+        }
+    }
+}
