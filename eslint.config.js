@@ -46,11 +46,11 @@ export default tseslint.config(
     // purpose, since it isn't source the package ships. Typed linting needs a tsconfig project to
     // resolve against, which these files deliberately don't have; see packages/engine/demo/README.md
     // and apps/web/units-demo/README.md for what they're for instead.
-    // packages/data/scripts/**, scripts/*.mjs and apps/web/postcss.config.mjs are the same
-    // story for build/codegen/tooling config (packages/data/scripts/copy-json-assets.mjs,
-    // scripts/generate-units-catalog.mjs) — plain Node/PostCSS config run directly, not
-    // compiled by any package's `tsc`, so there's no tsconfig project for typed rules to attach
-    // to.
+    // packages/data/scripts/**, scripts/*.mjs, apps/web/scripts/*.mjs and
+    // apps/web/postcss.config.mjs are the same story for build/codegen/tooling config
+    // (packages/data/scripts/copy-json-assets.mjs, scripts/generate-units-catalog.mjs,
+    // apps/web/scripts/dev.mjs) — plain Node/PostCSS config run directly, not compiled by any
+    // package's `tsc`, so there's no tsconfig project for typed rules to attach to.
     // apps/web/.next/** is Next.js's own build cache/output — generated, not ours.
     ignores: [
       '**/dist/**',
@@ -61,6 +61,7 @@ export default tseslint.config(
       'apps/web/units-demo/**',
       'packages/data/scripts/**',
       'scripts/*.mjs',
+      'apps/web/scripts/*.mjs',
       'apps/web/postcss.config.mjs',
       'apps/web/.next/**',
     ],

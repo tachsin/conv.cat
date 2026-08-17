@@ -2,6 +2,8 @@
 
 import { useId, useRef, useState } from 'react';
 import type { DragEvent, KeyboardEvent } from 'react';
+import { motion } from 'motion/react';
+import { FolderOpen } from 'lucide-react';
 
 interface DropZoneProps {
   onFiles: (files: FileList) => void;
@@ -65,7 +67,7 @@ export function DropZone({ onFiles, disabled = false, disabledReason }: DropZone
   }
 
   return (
-    <div
+    <motion.div
       className={`drop-zone drop-zone--fill${isActive ? ' drop-zone--active' : ''}`}
       role="button"
       tabIndex={disabled ? -1 : 0}
@@ -78,10 +80,19 @@ export function DropZone({ onFiles, disabled = false, disabledReason }: DropZone
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
+      animate={{ scale: isActive ? 1.015 : 1 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+      whileHover={disabled ? undefined : { scale: 1.005 }}
+      whileTap={disabled ? undefined : { scale: 0.99 }}
     >
-      <span className="drop-zone-icon" aria-hidden="true">
-        📂
-      </span>
+      <motion.span
+        className="drop-zone-icon"
+        aria-hidden="true"
+        animate={{ scale: isActive ? 1.12 : 1, rotate: isActive ? -4 : 0 }}
+        transition={{ type: 'spring', stiffness: 420, damping: 20 }}
+      >
+        <FolderOpen aria-hidden="true" className="h-5 w-5" />
+      </motion.span>
       <div className="drop-zone-body">
         <span className="drop-zone-title">Drag files here, or press Enter to browse</span>
         <span className="drop-zone-hint" id={hintId}>
@@ -106,6 +117,6 @@ export function DropZone({ onFiles, disabled = false, disabledReason }: DropZone
           event.target.value = '';
         }}
       />
-    </div>
+    </motion.div>
   );
 }
