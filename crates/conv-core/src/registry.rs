@@ -64,6 +64,9 @@ pub enum Format {
     /// GIF — 8-bit palette only (which is all GIF ever is), first frame only for animated files;
     /// see `crate::formats::image::gif` module docs.
     Gif,
+    /// JPEG, baseline sequential DCT only (no progressive, no arithmetic coding) — see
+    /// `crate::formats::image::jpeg` module docs.
+    Jpeg,
 
     // ─── Units — one variant per category, not per unit ────────────────────────────────────
     //
@@ -108,6 +111,7 @@ impl Format {
             Format::Ico => "ico",
             Format::Webp => "webp",
             Format::Gif => "gif",
+            Format::Jpeg => "jpeg",
             Format::UnitsLength => "units_length",
             Format::UnitsMass => "units_mass",
             Format::UnitsVolume => "units_volume",
@@ -123,9 +127,13 @@ impl Format {
     pub fn category(&self) -> Category {
         match self {
             Format::PlainText => Category::Text,
-            Format::Bmp | Format::Qoi | Format::Png | Format::Ico | Format::Webp | Format::Gif => {
-                Category::Image
-            }
+            Format::Bmp
+            | Format::Qoi
+            | Format::Png
+            | Format::Ico
+            | Format::Webp
+            | Format::Gif
+            | Format::Jpeg => Category::Image,
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -154,6 +162,7 @@ impl Format {
             Format::Ico => "image/x-icon",
             Format::Webp => "image/webp",
             Format::Gif => "image/gif",
+            Format::Jpeg => "image/jpeg",
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -176,6 +185,7 @@ impl Format {
             Format::Ico => &["ico"],
             Format::Webp => &["webp"],
             Format::Gif => &["gif"],
+            Format::Jpeg => &["jpg", "jpeg"],
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -198,9 +208,13 @@ impl Format {
     pub fn can_read(&self) -> bool {
         match self {
             Format::PlainText => true,
-            Format::Bmp | Format::Qoi | Format::Png | Format::Ico | Format::Webp | Format::Gif => {
-                true
-            }
+            Format::Bmp
+            | Format::Qoi
+            | Format::Png
+            | Format::Ico
+            | Format::Webp
+            | Format::Gif
+            | Format::Jpeg => true,
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -216,9 +230,13 @@ impl Format {
     pub fn can_write(&self) -> bool {
         match self {
             Format::PlainText => true,
-            Format::Bmp | Format::Qoi | Format::Png | Format::Ico | Format::Webp | Format::Gif => {
-                true
-            }
+            Format::Bmp
+            | Format::Qoi
+            | Format::Png
+            | Format::Ico
+            | Format::Webp
+            | Format::Gif
+            | Format::Jpeg => true,
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume

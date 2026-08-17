@@ -6,19 +6,25 @@
 # converter adds bytes — but it is a deliberate line in a diff, with the reason in the PR
 # description, not something that drifts upward unnoticed over twenty merges.
 #
-# Current headroom: WebP lossless (VP8L) support brought the release build to 202094 bytes
-# (197.4 KB), up from 154078 bytes just before it (BMP/QOI/PNG/ICO). This is the single biggest
-# jump of any format ticket so far — a from-scratch bit reader/writer, canonical Huffman
+# Current headroom: baseline JPEG support (`crates/conv-core/src/formats/image/jpeg.rs`) brought
+# the release build to 252853 bytes (246.9 KB), up from 217611 bytes just before it (GIF). A real
+# separable forward+inverse DCT, canonical Huffman construction on both the decode and encode
+# sides (with the classic mincode/maxcode/valptr array-based decode structure, not a hash map —
+# JPEG decode's hot loop runs per-coefficient, not once per file), plus four embedded standard
+# Annex K tables (two quantization, two Huffman, each duplicated luma/chroma) account for most of
+# it. Checked first (`cargo tree -p conv-wasm`, this ticket): the dependency tree is unchanged
+# (conv-core, js-sys, wasm-bindgen, same as before) — the growth is entirely this new hand-rolled
+# codec, not a transitive dependency. 290000 leaves ~15% headroom above that for now.
+#
+# Previous headroom note (WebP lossless/VP8L): brought the build to 202094 bytes, up from 154078
+# just before it (BMP/QOI/PNG/ICO) — a from-scratch bit reader/writer, canonical Huffman
 # construction on both the decode *and* encode sides (VP8L has no "stored block" escape hatch the
 # way DEFLATE gave PNG), LZ77 backward-reference decoding with VP8L's own distance-mapping table,
 # the color cache, the meta-prefix (entropy image) mechanism, and all four pixel transforms — see
-# `crates/conv-core/src/formats/image/vp8l.rs`/`webp.rs` module docs. Checked first
-# (`cargo tree -p conv-wasm`, this ticket): the dependency tree is unchanged (conv-core, js-sys,
-# wasm-bindgen, same as before) — the growth is entirely this new hand-rolled codec, not a
-# transitive dependency. 235000 leaves ~16% headroom above that for now.
+# `crates/conv-core/src/formats/image/vp8l.rs`/`webp.rs` module docs.
 #
 # Before raising this again: check whether the growth is actually the format you added, or a
 # transitive dependency you did not intend to ship (`cargo tree -p conv-wasm` and
 # `wasm-pack build --release -- --features …`). Budget bumps that turn out to be an
 # accidental dependency are the exact regression this file exists to catch.
-235000
+290000
