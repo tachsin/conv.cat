@@ -19,7 +19,11 @@
 //! Only the lossless (VP8L) half is in scope; lossy WebP (`VP8 `) is a real intra-frame video
 //! codec — DCT/WHT transform, boolean arithmetic coding, block prediction — and out of scope for
 //! the same reason JPEG is (see [`png`]'s module docs), and needs its own from-scratch spec dive
-//! this crate hasn't taken on.
+//! this crate hasn't taken on. GIF (see [`gif`]) is back to a cheap step: its compression is LZW,
+//! a dictionary-of-byte-sequences scheme with no Huffman coding at all, unchanged and
+//! well-documented since 1989 — the only wrinkle worth validating empirically (not just trusting
+//! memory for) was the exact bit where the LZW code width grows, a well-known historical pitfall
+//! for this family of formats.
 //!
 //! [`raster`] is the shared decode target every format here converts through:
 //! `bytes -> RawImage -> bytes`, so a new raster format only has to implement one decode and one
@@ -28,6 +32,7 @@
 
 mod bmp;
 mod converter;
+mod gif;
 mod ico;
 mod png;
 mod qoi;
@@ -54,4 +59,5 @@ pub const FORMATS: &[Format] = &[
     Format::Png,
     Format::Ico,
     Format::Webp,
+    Format::Gif,
 ];

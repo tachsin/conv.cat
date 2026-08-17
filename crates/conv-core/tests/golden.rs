@@ -365,6 +365,146 @@ fn image_webp_truncated_is_a_typed_error() {
     );
 }
 
+// ─── image / gif ───────────────────────────────────────────────────────────
+//
+// GIF joins the raster hub last — see `crates/conv-core/src/formats/image/gif.rs` module docs for
+// why it's a cheap step relative to WebP despite being a real compressed format: LZW is a
+// dictionary-of-byte-sequences scheme with no Huffman coding at all. Same shared checkerboard
+// fixture as BMP/QOI/PNG/ICO/WebP above. The decoder's harder cases (real files built by Pillow
+// exercising interlacing and a full random 233-color palette, plus the empirically-derived
+// encoder/decoder LZW code-width growth timing) are Rust unit tests in `gif.rs` itself, same split
+// every other format in this hub uses for its own harder decoder cases.
+
+#[test]
+fn image_bmp_to_gif_checkerboard() {
+    support::run_golden_case(
+        "image/gif/checker_4x4.bmp",
+        "image/gif/checker_4x4.gif",
+        Format::Bmp,
+        Format::Gif,
+    );
+}
+
+#[test]
+fn image_qoi_to_gif_checkerboard() {
+    support::run_golden_case(
+        "image/gif/checker_4x4.qoi",
+        "image/gif/checker_4x4.gif",
+        Format::Qoi,
+        Format::Gif,
+    );
+}
+
+#[test]
+fn image_png_to_gif_checkerboard() {
+    support::run_golden_case(
+        "image/gif/checker_4x4.png",
+        "image/gif/checker_4x4.gif",
+        Format::Png,
+        Format::Gif,
+    );
+}
+
+#[test]
+fn image_ico_to_gif_checkerboard() {
+    support::run_golden_case(
+        "image/gif/checker_4x4.ico",
+        "image/gif/checker_4x4.gif",
+        Format::Ico,
+        Format::Gif,
+    );
+}
+
+#[test]
+fn image_webp_to_gif_checkerboard() {
+    support::run_golden_case(
+        "image/gif/checker_4x4.webp",
+        "image/gif/checker_4x4.gif",
+        Format::Webp,
+        Format::Gif,
+    );
+}
+
+#[test]
+fn image_gif_to_bmp_checkerboard() {
+    support::run_golden_case(
+        "image/bmp/checker_4x4.gif",
+        "image/bmp/checker_4x4.bmp",
+        Format::Gif,
+        Format::Bmp,
+    );
+}
+
+#[test]
+fn image_gif_to_qoi_checkerboard() {
+    support::run_golden_case(
+        "image/qoi/checker_4x4.gif",
+        "image/qoi/checker_4x4.qoi",
+        Format::Gif,
+        Format::Qoi,
+    );
+}
+
+#[test]
+fn image_gif_to_png_checkerboard() {
+    support::run_golden_case(
+        "image/png/checker_4x4.gif",
+        "image/png/checker_4x4.png",
+        Format::Gif,
+        Format::Png,
+    );
+}
+
+#[test]
+fn image_gif_to_ico_checkerboard() {
+    support::run_golden_case(
+        "image/ico/checker_4x4.gif",
+        "image/ico/checker_4x4.ico",
+        Format::Gif,
+        Format::Ico,
+    );
+}
+
+#[test]
+fn image_gif_to_webp_checkerboard() {
+    support::run_golden_case(
+        "image/webp/checker_4x4.gif",
+        "image/webp/checker_4x4.webp",
+        Format::Gif,
+        Format::Webp,
+    );
+}
+
+#[test]
+fn image_gif_bad_signature_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/bmp/bad_signature.gif.bad",
+        Format::Gif,
+        Format::Bmp,
+    );
+}
+
+#[test]
+fn image_gif_truncated_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/qoi/truncated.gif.bad",
+        Format::Gif,
+        Format::Qoi,
+    );
+}
+
+#[test]
+fn image_gif_no_image_before_trailer_is_a_typed_error() {
+    // A stream with a well-formed header/LSD but that hits the `;` trailer byte before ever
+    // reaching an image descriptor — the "no frames" edge case `gif::decode` has to reject
+    // explicitly rather than reading past the end of the buffer looking for one.
+    support::assert_malformed_produces_typed_error(
+        "image/png/no_image_before_trailer.gif.bad",
+        Format::Gif,
+        Format::Png,
+    );
+}
+
 // ─── text / plain_text ──────────────────────────────────────────────────────
 //
 // `IdentityConverter` (PlainText -> PlainText) is a passthrough, so every golden file here is
@@ -802,6 +942,20 @@ fn fixtures_tree_has_no_stray_or_orphaned_files() {
         "image/ico/checker_4x4.webp",
         "image/bmp/bad_riff.webp.bad",
         "image/qoi/truncated.webp.bad",
+        "image/gif/checker_4x4.bmp",
+        "image/gif/checker_4x4.qoi",
+        "image/gif/checker_4x4.png",
+        "image/gif/checker_4x4.ico",
+        "image/gif/checker_4x4.webp",
+        "image/gif/checker_4x4.gif",
+        "image/bmp/checker_4x4.gif",
+        "image/qoi/checker_4x4.gif",
+        "image/png/checker_4x4.gif",
+        "image/ico/checker_4x4.gif",
+        "image/webp/checker_4x4.gif",
+        "image/bmp/bad_signature.gif.bad",
+        "image/qoi/truncated.gif.bad",
+        "image/png/no_image_before_trailer.gif.bad",
         "text/plain_text/hello.input.txt",
         "text/plain_text/hello.golden.txt",
         "text/plain_text/empty.input.txt",
