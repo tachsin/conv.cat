@@ -9,6 +9,7 @@
     "node": ">=26"
   },
   "scripts": {
+    "dev": "pnpm --filter @conv.cat/web dev",
     "build": "pnpm -r --if-present run build",
     "build:all": "./scripts/build-all.sh",
     "check": "./scripts/build-all.sh --check",
