@@ -1,5 +1,6 @@
 'use client';
 
+import { AnimatePresence } from 'motion/react';
 import type { FormatInfo } from '@conv.cat/engine';
 
 import type { ConversionJob } from '@/lib/use-converter';
@@ -44,18 +45,20 @@ export function FileQueue({
       </div>
 
       <ul className="converter-file-list">
-        {jobs.map((job) => (
-          <FileRow
-            key={job.id}
-            job={job}
-            formats={formats}
-            onChangeFrom={(format) => onChangeFrom(job.id, format)}
-            onChangeTo={(format) => onChangeTo(job.id, format)}
-            onConvert={() => onConvert(job.id)}
-            onCancel={() => onCancel(job.id)}
-            onRemove={() => onRemove(job.id)}
-          />
-        ))}
+        <AnimatePresence initial={false}>
+          {jobs.map((job) => (
+            <FileRow
+              key={job.id}
+              job={job}
+              formats={formats}
+              onChangeFrom={(format) => onChangeFrom(job.id, format)}
+              onChangeTo={(format) => onChangeTo(job.id, format)}
+              onConvert={() => onConvert(job.id)}
+              onCancel={() => onCancel(job.id)}
+              onRemove={() => onRemove(job.id)}
+            />
+          ))}
+        </AnimatePresence>
       </ul>
     </section>
   );

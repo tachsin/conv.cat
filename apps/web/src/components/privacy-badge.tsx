@@ -3,14 +3,16 @@
 // our differentiator — show it, do not just claim it." See README.md "Your files never leave
 // your device — here's the source" for the same claim made at the repo level.
 
+import { ShieldCheck } from 'lucide-react';
+
 const WORKER_SOURCE_URL =
   'https://github.com/tachsin/conv.cat/blob/main/packages/engine/src/wasm/client.ts#L19-L22';
 
 export function PrivacyBadge() {
   return (
     <div className="glass-card converter-highlight flex flex-col gap-2 rounded-xl p-4 text-sm sm:flex-row sm:items-start sm:gap-3">
-      <span className="text-lg" aria-hidden="true">
-        🔒
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary" aria-hidden="true">
+        <ShieldCheck className="h-4 w-4" />
       </span>
       <div>
         <p className="font-semibold text-base-content">Nothing you convert is ever uploaded.</p>

@@ -1,10 +1,14 @@
 'use client';
 
-import { useId, useMemo } from 'react';
+import { useId, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { CircleAlert, CircleCheck, FileIcon, Loader2, X } from 'lucide-react';
 import type { FormatInfo } from '@conv.cat/engine';
 
 import type { ConversionJob } from '@/lib/use-converter';
-import { formatBytes, formatLabel, outputFileName, readableFormats, writableFormatsInCategory } from '@/lib/formats';
+import { formatBytes, outputFileName, readableFormats, writableFormatsInCategory } from '@/lib/formats';
+import { FormatPicker } from './format-picker';
+import { Modal } from './modal';
 
 interface FileRowProps {
   job: ConversionJob;
@@ -36,13 +40,33 @@ export function FileRow({ job, formats, onChangeFrom, onChangeTo, onConvert, onC
     [formats, job.from],
   );
 
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+
   const isConverting = job.status === 'converting';
   const canConvert = (job.status === 'ready' || job.status === 'error') && job.from && job.to;
 
   return (
-    <li className={`converter-file-row${isConverting ? ' converter-file-row--converting' : ''}`}>
+    <motion.li
+      layout
+      initial={{ opacity: 0, y: -8, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.16 } }}
+      transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.6 }}
+      className={`converter-file-row${isConverting ? ' converter-file-row--converting' : ''}`}
+    >
       <span className="converter-file-thumb converter-file-thumb--empty" aria-hidden="true">
-        {statusGlyph(job.status)}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={job.status}
+            initial={{ opacity: 0, scale: 0.6, rotate: -8 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            className="grid place-items-center"
+          >
+            {statusIcon(job.status)}
+          </motion.span>
+        </AnimatePresence>
       </span>
 
       <div className="min-w-0 flex-1">
@@ -50,71 +74,108 @@ export function FileRow({ job, formats, onChangeFrom, onChangeTo, onConvert, onC
         <p className="text-xs text-base-content/50">{formatBytes(job.file.size)}</p>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <label className="sr-only" htmlFor={fromId}>
-            Convert {job.file.name} from
-          </label>
-          <select
+          <FormatPicker
             id={fromId}
-            className="converter-input select select-sm"
-            value={job.from?.id ?? ''}
+            label={`Convert ${job.file.name} from`}
+            placeholder="Choose the source format…"
+            value={job.from}
+            options={fromOptions}
             disabled={isConverting}
-            onChange={(event) => {
-              const next = fromOptions.find((format) => format.id === event.target.value);
-              if (next) onChangeFrom(next);
-            }}
-          >
-            {!job.from && <option value="">Choose the source format…</option>}
-            {fromOptions.map((format) => (
-              <option key={format.id} value={format.id}>
-                {formatLabel(format)}
-              </option>
-            ))}
-          </select>
+            onChange={onChangeFrom}
+          />
 
           {job.from && (
             <>
               <span aria-hidden="true" className="text-base-content/40">
                 →
               </span>
-              <label className="sr-only" htmlFor={toId}>
-                Convert {job.file.name} to
-              </label>
-              <select
+              <FormatPicker
                 id={toId}
-                className="converter-input select select-sm"
-                value={job.to?.id ?? ''}
+                label={`Convert ${job.file.name} to`}
+                placeholder="Choose the target format…"
+                value={job.to}
+                options={toOptions}
                 disabled={isConverting}
-                onChange={(event) => {
-                  const next = toOptions.find((format) => format.id === event.target.value);
-                  if (next) onChangeTo(next);
-                }}
-              >
-                {toOptions.map((format) => (
-                  <option key={format.id} value={format.id}>
-                    {formatLabel(format)}
-                  </option>
-                ))}
-              </select>
+                onChange={onChangeTo}
+              />
             </>
           )}
         </div>
 
-        <p className={`converter-file-status converter-file-status--${statusModifier(job.status)} mt-1.5`}>
-          {STATUS_LABEL[job.status]}
-          {job.status === 'error' && job.errorMessage ? `: ${job.errorMessage}` : ''}
-          {job.status === 'done' && job.resultBytes !== undefined ? ` — ${formatBytes(job.resultBytes)}` : ''}
-        </p>
+        <AnimatePresence mode="wait" initial={false}>
+          {job.status === 'error' ? (
+            <motion.button
+              key={`${job.status}-${job.errorMessage ?? ''}`}
+              type="button"
+              onClick={() => setErrorModalOpen(true)}
+              initial={{ opacity: 0, y: -2 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="converter-file-status converter-file-status--error mt-1.5 line-clamp-1 text-left underline decoration-error/40 underline-offset-2 hover:decoration-error"
+            >
+              {STATUS_LABEL.error}
+              {job.errorMessage ? `: ${job.errorMessage}` : ''}
+            </motion.button>
+          ) : (
+            <motion.p
+              key={job.status}
+              initial={{ opacity: 0, y: -2 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className={`converter-file-status converter-file-status--${statusModifier(job.status)} mt-1.5`}
+            >
+              {STATUS_LABEL[job.status]}
+              {job.status === 'done' && job.resultBytes !== undefined ? ` — ${formatBytes(job.resultBytes)}` : ''}
+            </motion.p>
+          )}
+        </AnimatePresence>
+
+        {job.status === 'error' && (
+          <Modal
+            open={errorModalOpen}
+            onOpenChange={setErrorModalOpen}
+            title="Conversion failed"
+            description={job.file.name}
+            footer={
+              <>
+                <button type="button" className="btn-secondary" onClick={() => setErrorModalOpen(false)}>
+                  Close
+                </button>
+                {canConvert && (
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={() => {
+                      setErrorModalOpen(false);
+                      onConvert();
+                    }}
+                  >
+                    Retry
+                  </button>
+                )}
+              </>
+            }
+          >
+            {job.errorMessage ?? 'Something went wrong during conversion.'}
+          </Modal>
+        )}
 
         {isConverting && (
-          <div className="mt-1.5">
+          <div className="converter-progress-track mt-1.5">
             <label className="sr-only" htmlFor={progressId}>
               Converting {job.file.name}
             </label>
-            <progress
+            <motion.div
               id={progressId}
-              className="converter-progress-track [&::-webkit-progress-value]:bg-primary [&::-webkit-progress-value]:rounded-full [&::-moz-progress-bar]:bg-primary"
-              value={job.progress}
-              max={1}
+              role="progressbar"
+              aria-valuenow={Math.round(job.progress * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              className="converter-progress-fill"
+              animate={{ width: `${Math.max(job.progress, 0.04) * 100}%` }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             />
           </div>
         )}
@@ -142,10 +203,10 @@ export function FileRow({ job, formats, onChangeFrom, onChangeTo, onConvert, onC
           onClick={onRemove}
           aria-label={`Remove ${job.file.name}`}
         >
-          <span aria-hidden="true">✕</span>
+          <X aria-hidden="true" className="h-3.5 w-3.5" />
         </button>
       </div>
-    </li>
+    </motion.li>
   );
 }
 
@@ -164,15 +225,15 @@ function statusModifier(status: ConversionJob['status']): string {
   }
 }
 
-function statusGlyph(status: ConversionJob['status']): string {
+function statusIcon(status: ConversionJob['status']) {
   switch (status) {
     case 'done':
-      return '✅';
+      return <CircleCheck aria-hidden="true" className="h-5 w-5 text-emerald-500" />;
     case 'error':
-      return '⚠️';
+      return <CircleAlert aria-hidden="true" className="h-5 w-5 text-error" />;
     case 'converting':
-      return '⏳';
+      return <Loader2 aria-hidden="true" className="h-5 w-5 animate-spin text-primary" />;
     default:
-      return '📄';
+      return <FileIcon aria-hidden="true" className="h-5 w-5 text-base-content/40" />;
   }
 }

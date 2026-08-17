@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Toaster } from 'sonner';
 
 import { SiteFooter } from '@/components/site-footer';
 import { SiteHeader } from '@/components/site-header';
@@ -36,6 +37,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteHeader />
         {children}
         <SiteFooter />
+        <Toaster
+          position="bottom-right"
+          theme="system"
+          closeButton
+          toastOptions={{
+            classNames: {
+              toast: 'toast-card',
+              title: '!text-base-content',
+              description: '!text-base-content/60',
+              closeButton: '!border-base-content/10 !bg-base-100 !text-base-content/50',
+            },
+          }}
+        />
       </body>
     </html>
   );

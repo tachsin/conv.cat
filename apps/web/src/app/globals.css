@@ -205,19 +205,125 @@
   }
 
   .converter-progress-track {
-    @apply h-1.5 w-full appearance-none overflow-hidden rounded-full bg-base-content/10;
+    @apply relative h-1.5 w-full overflow-hidden rounded-full bg-base-content/10;
   }
 
-  .converter-progress-track::-webkit-progress-bar {
-    @apply rounded-full bg-base-content/10;
+  .converter-progress-fill {
+    @apply relative h-full overflow-hidden rounded-full bg-primary;
+  }
+
+  .converter-progress-fill::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklch, var(--color-primary-content) 45%, transparent),
+      transparent
+    );
+    animation: progress-shimmer 1.3s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .converter-progress-fill::after {
+      animation: none;
+    }
   }
 
   .converter-input {
     @apply rounded-lg border border-base-content/10 bg-base-content/5 text-sm text-base-content outline-none focus-visible:border-primary/30 focus-visible:ring-2 focus-visible:ring-primary/10;
   }
 
+  .format-picker-trigger {
+    @apply flex h-8 min-w-0 max-w-full items-center gap-1.5 rounded-lg border border-base-content/10 bg-base-content/5 px-2.5 text-sm text-base-content outline-none transition hover:border-primary/30 hover:bg-base-content/10 focus-visible:border-primary/30 focus-visible:ring-2 focus-visible:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .format-picker-ext {
+    @apply shrink-0 rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-primary uppercase bg-primary/10;
+  }
+
+  .format-picker-content {
+    @apply z-50 w-64 overflow-hidden rounded-xl border border-base-content/10 bg-base-100/95 p-0 text-base-content shadow-2xl shadow-base-content/20 backdrop-blur-2xl;
+  }
+
+  .format-picker-search {
+    @apply w-full border-b border-base-content/10 bg-transparent px-3 py-2.5 text-sm text-base-content outline-none placeholder:text-base-content/40;
+  }
+
+  .format-picker-list {
+    @apply max-h-64 overflow-y-auto p-1.5;
+  }
+
+  .format-picker-empty {
+    @apply px-2 py-4 text-center text-xs text-base-content/40;
+  }
+
+  .format-picker-item {
+    @apply flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-base-content outline-none transition data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary;
+  }
+
   .nav-header {
     @apply sticky top-0 z-30 w-full border-b border-base-content/10 bg-base-100/92 backdrop-blur-md;
+  }
+
+  .command-palette-hint {
+    @apply flex items-center gap-2 self-start rounded-lg border border-base-content/10 bg-base-content/5 px-3 py-1.5 text-xs font-medium text-base-content/60 outline-none transition hover:border-primary/30 hover:bg-base-content/10 hover:text-base-content focus-visible:ring-2 focus-visible:ring-primary/20;
+  }
+
+  .command-palette-kbd {
+    @apply rounded border border-base-content/15 bg-base-content/10 px-1.5 py-0.5 font-mono text-[10px] text-base-content/50;
+  }
+
+  .command-palette-overlay {
+    @apply fixed inset-0 z-50 bg-base-300/70 backdrop-blur-sm;
+  }
+
+  .command-palette-content {
+    @apply fixed top-[18vh] left-1/2 z-50 w-[min(34rem,92vw)] -translate-x-1/2 overflow-hidden rounded-xl border border-base-content/10 bg-base-100/95 text-base-content shadow-2xl shadow-base-content/25 backdrop-blur-2xl outline-none;
+  }
+
+  .command-palette-list {
+    @apply max-h-[60vh] overflow-y-auto p-1.5;
+  }
+
+  .command-palette-group [cmdk-group-heading] {
+    @apply px-2.5 pt-2.5 pb-1 text-[10px] font-semibold tracking-wider text-base-content/40 uppercase;
+  }
+
+  .modal-overlay {
+    @apply fixed inset-0 z-50 bg-base-300/70 backdrop-blur-sm;
+  }
+
+  .modal-content {
+    @apply fixed top-1/2 left-1/2 z-50 w-[min(28rem,92vw)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-base-content/10 bg-base-100/95 p-4 text-base-content shadow-2xl shadow-base-content/25 backdrop-blur-2xl outline-none sm:p-5;
+  }
+
+  .modal-header {
+    @apply flex items-start justify-between gap-3;
+  }
+
+  .modal-title {
+    @apply text-sm font-semibold text-base-content;
+  }
+
+  .modal-close {
+    @apply grid h-7 w-7 shrink-0 place-items-center rounded-full border border-base-content/10 text-base-content/50 outline-none transition hover:border-error/30 hover:bg-error/10 hover:text-error focus-visible:ring-2 focus-visible:ring-primary/20;
+  }
+
+  .modal-description {
+    @apply mt-1 text-xs text-base-content/50;
+  }
+
+  .modal-body {
+    @apply mt-3 text-sm leading-relaxed text-base-content/80;
+  }
+
+  .modal-footer {
+    @apply mt-4 flex items-center justify-end gap-2;
+  }
+
+  .toast-card {
+    @apply !rounded-xl !border !border-base-content/10 !bg-base-100/90 !text-base-content !shadow-2xl !shadow-base-content/15 backdrop-blur-2xl;
   }
 
   .theme-picker-btn {
@@ -239,6 +345,15 @@
 
   .animate-fade-up {
     animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes progress-shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -6,8 +6,11 @@
 // README: "UI only... must never contain conversion logic").
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { ConvertError, getEngine } from '@conv.cat/engine';
 import type { ConvEngine, EngineBackendKind, FormatInfo } from '@conv.cat/engine';
+
+import { formatBytes } from './formats';
 
 import { guessFormat, readableFormats, writableFormatsInCategory } from './formats';
 
@@ -185,6 +188,7 @@ export function useConverter() {
         objectUrls.current.add(url);
         patchJob(id, { status: 'done', progress: 1, resultUrl: url, resultBytes: output.byteLength });
         setAnnouncement(`${job.file.name} converted.`);
+        toast.success(`${job.file.name} converted`, { description: formatBytes(output.byteLength) });
       } catch (error) {
         const message =
           error instanceof ConvertError
@@ -194,6 +198,9 @@ export function useConverter() {
               : String(error);
         patchJob(id, { status: 'error', errorMessage: message });
         setAnnouncement(`${job.file.name} failed to convert: ${message}`);
+        if (!(error instanceof ConvertError) || error.kind !== 'cancelled') {
+          toast.error(`${job.file.name} failed to convert`, { description: message });
+        }
       } finally {
         abortControllers.current.delete(id);
       }
