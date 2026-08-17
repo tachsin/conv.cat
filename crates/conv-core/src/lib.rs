@@ -133,18 +133,17 @@ fn default_registry() -> &'static Registry {
             Box::new(formats::identity::IdentityConverter),
         );
 
-        // Image: one converter, registered for both directions of the one raster pair this crate
-        // currently supports — see `formats::image` module docs for why BMP/QOI and not more.
-        registry.register(
-            Format::Bmp,
-            Format::Qoi,
-            Box::new(formats::image::RasterConverter),
-        );
-        registry.register(
-            Format::Qoi,
-            Format::Bmp,
-            Box::new(formats::image::RasterConverter),
-        );
+        // Image: one converter, registered for every ordered pair drawn from the raster formats
+        // it supports — see `formats::image::FORMATS` for why a loop instead of one
+        // `registry.register` call per direction, and its module docs for why BMP/QOI and not
+        // more (yet).
+        for &from in formats::image::FORMATS {
+            for &to in formats::image::FORMATS {
+                if from != to {
+                    registry.register(from, to, Box::new(formats::image::RasterConverter));
+                }
+            }
+        }
 
         // Units: one converter, registered for every in-scope category's self-pair — see
         // `formats::units` module docs for why units are modeled as self-pairs rather than
