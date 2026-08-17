@@ -25,7 +25,12 @@ struct Huffman {
 /// Builds a canonical [`Huffman`] table from a list of code lengths (index = symbol, value =
 /// that symbol's code length in bits; `0` means "this symbol is unused").
 ///
-/// Returns `None` only if the lengths are over-subscribed (more codes of some length than the
+/// Returns `None` if any length exceeds [`MAXBITS`] (every current caller only ever passes
+/// lengths already bounded to `0..=15` — the fixed tables are hardcoded, and the dynamic-header
+/// values in [`read_dynamic_trees`] come from a 3-bit read or the code-length alphabet's own
+/// `0..=15` direct values — but `count` is only sized for `0..=MAXBITS`, so this function needs
+/// to reject an out-of-range length itself rather than trust every call site to keep enforcing
+/// that invariant) or if the lengths are over-subscribed (more codes of some length than the
 /// available code space allows) — an unambiguous sign of corrupt input. An *under*-subscribed
 /// (incomplete) code is accepted: canonical assignment is still well-defined and prefix-free for
 /// whatever codes it did assign, so [`decode`] simply reports "no match" if the input ever tries
@@ -37,6 +42,9 @@ struct Huffman {
 fn construct(lengths: &[u8]) -> Option<Huffman> {
     let mut count = [0u16; MAXBITS + 1];
     for &len in lengths {
+        if len as usize > MAXBITS {
+            return None;
+        }
         count[len as usize] += 1;
     }
 
@@ -562,5 +570,26 @@ mod tests {
     fn adler32_matches_a_known_value() {
         // "Wikipedia" -> 0x11E60398, a widely-cited Adler-32 test vector.
         assert_eq!(adler32(b"Wikipedia"), 0x11E6_0398);
+    }
+
+    #[test]
+    fn construct_rejects_a_length_greater_than_maxbits_instead_of_panicking() {
+        // `count` is only sized `0..=MAXBITS` (15) — a length past that must be rejected, not
+        // indexed unconditionally. No call site in this module can produce one today (see
+        // `construct`'s own docs for why), but `construct` needs to hold this invariant itself
+        // rather than trust every current and future caller to keep enforcing it externally.
+        assert!(construct(&[16]).is_none());
+        assert!(construct(&[8, 200, 3]).is_none());
+    }
+
+    #[test]
+    fn construct_accepts_a_length_exactly_at_maxbits() {
+        assert!(construct(&[15]).is_some());
+    }
+
+    #[test]
+    fn construct_rejects_an_over_subscribed_code() {
+        // Two symbols both claiming the single available 1-bit code.
+        assert!(construct(&[1, 1, 1]).is_none());
     }
 }
