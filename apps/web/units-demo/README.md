@@ -3,10 +3,11 @@
 A manual QA page proving the units vertical slice end to end: a real category/unit conversion,
 run through Rust (`conv-core`) → WASM (`conv-wasm`) → `@conv.cat/engine`'s `convertUnit()`
 convenience wrapper, with unit metadata read from `@conv.cat/data`. **This is not the product
-UI** — `apps/web/src` is still a bare scaffold (the real Next.js single-page converter shell is a
-separate, not-yet-built backlog ticket). This exists so the units architecture this ticket shipped
-has a runnable proof in a real browser, not just tests — mirroring
-`packages/engine/demo`, which does the same thing for the base pipeline.
+UI** — `apps/web/src` is now the real Next.js single-page converter shell, but it only handles
+file-shaped formats (see `apps/web/src/lib/formats.ts`'s `fileFormats()`); units have no file to
+drop, so wiring them into that shell is a separate, not-yet-scoped ticket. This exists so the
+units architecture this ticket shipped has a runnable proof in a real browser, not just tests —
+mirroring `packages/engine/demo`, which does the same thing for the base pipeline.
 
 Deliberately crude (no design, no framework, inline styles) so nobody mistakes it for the real
 thing.
