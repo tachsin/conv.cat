@@ -29,7 +29,9 @@ use super::raster::{checked_rgba_len, RawImage};
 use super::zlib;
 use crate::{ConvertError, ConvertOptions, Format};
 
-const SIGNATURE: [u8; 8] = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+/// The 8-byte PNG magic. `pub(super)` so [`super::ico`] can recognize a PNG-compressed ICO entry
+/// without duplicating this constant.
+pub(super) const SIGNATURE: [u8; 8] = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 const CHUNK_HEADER_LEN: usize = 8; // 4-byte length + 4-byte type
 const CHUNK_CRC_LEN: usize = 4;
 
