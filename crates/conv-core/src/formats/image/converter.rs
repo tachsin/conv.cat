@@ -3,7 +3,7 @@
 //! `crate::Converter::convert`'s own rustdoc names as the expected shape for a shared raster
 //! implementation.
 
-use super::{bmp, ico, png, qoi, raster::RawImage};
+use super::{bmp, ico, png, qoi, raster::RawImage, webp};
 use crate::{ConvertError, ConvertOptions, Converter, Format};
 
 /// Decodes `from`, then encodes as `to`. Registered for every raster `(from, to)` pair this crate
@@ -32,6 +32,7 @@ impl Converter for RasterConverter {
             Format::Qoi => qoi::encode(&image, options),
             Format::Png => png::encode(&image, options),
             Format::Ico => ico::encode(&image, options),
+            Format::Webp => webp::encode(&image, options),
             _ => Err(ConvertError::UnsupportedPair { from, to }),
         }
     }
@@ -43,6 +44,7 @@ fn decode(input: &[u8], from: Format, options: &ConvertOptions) -> Result<RawIma
         Format::Qoi => qoi::decode(input, options),
         Format::Png => png::decode(input, options),
         Format::Ico => ico::decode(input, options),
+        Format::Webp => webp::decode(input, options),
         _ => Err(ConvertError::UnsupportedPair { from, to: from }),
     }
 }
@@ -61,6 +63,7 @@ mod tests {
             Format::Qoi => qoi::encode(image, options),
             Format::Png => png::encode(image, options),
             Format::Ico => ico::encode(image, options),
+            Format::Webp => webp::encode(image, options),
             _ => panic!(
                 "encode_as has no encoder wired up for {format:?} — it was added to \
                  `formats::image::FORMATS` but this test helper wasn't taught how to produce \

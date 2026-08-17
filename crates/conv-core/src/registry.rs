@@ -44,9 +44,9 @@ pub enum Format {
 
     // ─── Image — first real, file-shaped category ──────────────────────────────────────────
     //
-    // See `crate::formats::image` module docs for why BMP/QOI/PNG/ICO specifically (all
+    // See `crate::formats::image` module docs for why BMP/QOI/PNG/ICO/WebP specifically (all
     // hand-rolled, deterministic/lossless, no new dependency) rather than the full target
-    // catalog (JPEG/WebP/...) in one shot.
+    // catalog (JPEG/AVIF/...) in one shot.
     /// Uncompressed, 24-bit Windows BMP.
     Bmp,
     /// [QOI](https://qoiformat.org/) ("Quite OK Image") — a small, deterministic lossless format.
@@ -58,6 +58,9 @@ pub enum Format {
     /// Windows icon — a directory of embedded images, not a codec of its own; see
     /// `crate::formats::image::ico` module docs.
     Ico,
+    /// WebP, lossless (VP8L) only — see `crate::formats::image::webp`/`vp8l` module docs for why
+    /// lossy WebP (`VP8 `, a real intra-frame video codec) is a separate, out-of-scope undertaking.
+    Webp,
 
     // ─── Units — one variant per category, not per unit ────────────────────────────────────
     //
@@ -100,6 +103,7 @@ impl Format {
             Format::Qoi => "qoi",
             Format::Png => "png",
             Format::Ico => "ico",
+            Format::Webp => "webp",
             Format::UnitsLength => "units_length",
             Format::UnitsMass => "units_mass",
             Format::UnitsVolume => "units_volume",
@@ -115,7 +119,7 @@ impl Format {
     pub fn category(&self) -> Category {
         match self {
             Format::PlainText => Category::Text,
-            Format::Bmp | Format::Qoi | Format::Png | Format::Ico => Category::Image,
+            Format::Bmp | Format::Qoi | Format::Png | Format::Ico | Format::Webp => Category::Image,
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -142,6 +146,7 @@ impl Format {
             Format::Qoi => "image/qoi",
             Format::Png => "image/png",
             Format::Ico => "image/x-icon",
+            Format::Webp => "image/webp",
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -162,6 +167,7 @@ impl Format {
             Format::Qoi => &["qoi"],
             Format::Png => &["png"],
             Format::Ico => &["ico"],
+            Format::Webp => &["webp"],
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -184,7 +190,7 @@ impl Format {
     pub fn can_read(&self) -> bool {
         match self {
             Format::PlainText => true,
-            Format::Bmp | Format::Qoi | Format::Png | Format::Ico => true,
+            Format::Bmp | Format::Qoi | Format::Png | Format::Ico | Format::Webp => true,
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
@@ -200,7 +206,7 @@ impl Format {
     pub fn can_write(&self) -> bool {
         match self {
             Format::PlainText => true,
-            Format::Bmp | Format::Qoi | Format::Png | Format::Ico => true,
+            Format::Bmp | Format::Qoi | Format::Png | Format::Ico | Format::Webp => true,
             Format::UnitsLength
             | Format::UnitsMass
             | Format::UnitsVolume
