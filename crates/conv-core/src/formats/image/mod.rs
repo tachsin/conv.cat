@@ -19,8 +19,9 @@
 //! smaller, contrary to how it might look from the outside as "just another PNG-shaped format".
 //! Only the lossless (VP8L) half is in scope; lossy WebP (`VP8 `) is a real intra-frame video
 //! codec — DCT/WHT transform, boolean arithmetic coding, block prediction — and stays out of
-//! scope for the same reason AVIF/HEIC's video-codec cores do (see the root README's format
-//! roadmap). GIF (see [`gif`]) is back to a cheap step: its compression is LZW, a
+//! scope for the same reason AVIF's (AV1) and HEIC's (HEVC) video-codec cores do: evaluated and
+//! explicitly declined, not silently skipped — see `docs/ROADMAP.md`'s "Out of scope" section for
+//! the full reasoning. GIF (see [`gif`]) is back to a cheap step: its compression is LZW, a
 //! dictionary-of-byte-sequences scheme with no Huffman coding at all, unchanged and
 //! well-documented since 1989 — the only wrinkle worth validating empirically (not just trusting
 //! memory for) was the exact bit where the LZW code width grows, a well-known historical pitfall
@@ -61,8 +62,8 @@ use crate::Format;
 ///
 /// `default_registry` in `crates/conv-core/src/lib.rs` registers [`RasterConverter`] for every
 /// ordered pair drawn from this list rather than one hand-written `registry.register(...)` call
-/// per direction — so landing a new raster format (JPEG, AVIF, ...) is: add the `Format` variant,
-/// teach [`converter::RasterConverter`]'s `decode`/`convert` match arms about it, add it here.
+/// per direction — so landing a new raster format is: add the `Format` variant, teach
+/// [`converter::RasterConverter`]'s `decode`/`convert` match arms about it, add it here.
 /// Every existing raster format becomes convertible to and from it automatically, no registration
 /// call to remember.
 pub const FORMATS: &[Format] = &[

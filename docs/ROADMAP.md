@@ -101,7 +101,7 @@ exists yet, regardless of what the legacy site currently offers on the live doma
 | Category | Target formats | Status |
 | --- | --- | --- |
 | Units | Length, mass, temperature, volume, clothing sizes, cooking measurements, cat/dog years, and more | 🚧 In progress — 8 of 49 legacy categories ported, Phase 2 vertical slice |
-| Images | PNG, JPEG, WebP, AVIF, BMP, GIF, ICO, QOI, HEIC (decode) | 🚧 In progress — 7 of 9 target formats ported (BMP, QOI, PNG, ICO, WebP-lossless, GIF, JPEG-baseline), Phase 2. WebP here means VP8L (lossless) only — lossy WebP (`VP8 `) is a real intra-frame video codec (DCT/WHT, boolean arithmetic coding, block prediction), the same reason AVIF (AV1) and HEIC (HEVC) remain unported — see [`vp8l.rs`](../crates/conv-core/src/formats/image/vp8l.rs) and [`jpeg.rs`](../crates/conv-core/src/formats/image/jpeg.rs) module docs |
+| Images | PNG, JPEG, WebP, BMP, GIF, ICO, QOI | 🚧 In progress — 7 of 7 in-scope formats ported (BMP, QOI, PNG, ICO, WebP-lossless, GIF, JPEG-baseline), Phase 2. WebP here means VP8L (lossless) only — lossy WebP (`VP8 `) is a real intra-frame video codec (DCT/WHT, boolean arithmetic coding, block prediction) and stays out of scope, same as AVIF (AV1) and HEIC (HEVC) — see [Out of scope](#out-of-scope) below and [`vp8l.rs`](../crates/conv-core/src/formats/image/vp8l.rs)/[`jpeg.rs`](../crates/conv-core/src/formats/image/jpeg.rs) module docs |
 | Text & Data | CSV, JSON, HTML, Markdown | 📋 Planned — Phase 3 |
 | Video & Audio | Whatever ffmpeg-wasm supports, via `packages/media` | 📋 Planned — Phase 3 |
 | Timezones | IANA zones, interactive world map | 📋 Planned — Phase 3 |
@@ -116,6 +116,19 @@ yourself, or add one that isn't listed.
   whole point — a server upload path would contradict it. See the [README](../README.md).
 - **Bringing back 862 mail-merged landing pages.** If per-pair SEO pages return, they return
   fewer and genuinely differentiated, as a deliberate decision, not by default.
+- **AVIF and HEIC, and lossy WebP (`VP8 `) with them.** All three need a real intra-frame *video*
+  codec, not "just" a DCT/Huffman still-image codec like JPEG: AVIF needs AV1 intra decode (OBU
+  parsing, a CDF-adaptive multi-symbol arithmetic coder, recursive superblock partitioning down to
+  4x4, ~13 intra prediction modes including directional angles and chroma-from-luma, 16+ transform
+  type/size combinations each with its own inverse-transform math, plus deblocking/CDEF/loop-
+  restoration filters); HEIC needs the HEVC (H.265) equivalent (CABAC entropy coding, quadtree
+  CU/PU/TU partitioning, its own prediction and filter set). Each spec runs 500-700+ pages, versus
+  JPEG's ~50 — a genuinely different order of magnitude, evaluated and explicitly declined rather
+  than silently skipped: see [`crates/conv-core/src/formats/image/jpeg.rs`](../crates/conv-core/src/formats/image/jpeg.rs)
+  and [`vp8l.rs`](../crates/conv-core/src/formats/image/vp8l.rs) module docs for the formats that
+  *did* clear this bar. Revisit only as a deliberate, scoped decision to take on a multi-week
+  codec effort (or to accept a vetted dependency for these three specifically, a real exception to
+  this crate's zero-dependency rule) — not as a natural next step after JPEG.
 
 ## Influence the roadmap
 
