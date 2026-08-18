@@ -505,6 +505,194 @@ fn image_gif_no_image_before_trailer_is_a_typed_error() {
     );
 }
 
+// ─── image / jpeg ──────────────────────────────────────────────────────────
+//
+// JPEG (baseline sequential DCT only) joins the raster hub — see
+// `crates/conv-core/src/formats/image/jpeg.rs` module docs for the codec itself. Unlike every
+// other format in this hub, JPEG is genuinely **lossy by design** (the quantization step throws
+// away detail on purpose — see `tests/support::assert_size_within_tolerance`'s own doc comment,
+// which named JPEG as the reason this helper exists before this format even landed), so these
+// cases use structural checks (does the output start with the right magic bytes, does the public
+// `conv_core::convert` API round-trip through this codec at all) instead of a byte-exact golden.
+// A byte-exact JPEG golden would also be needlessly brittle here specifically: this module's own
+// chroma-upsampling algorithm already changed once during its development (nearest-neighbor to
+// bilinear, to better match real decoders — see the module's git history) and any future
+// quantization/upsampling refinement would silently invalidate a stored golden even though the
+// output is still correct, unlike a change to a lossless codec's output, which is *always* a bug.
+// The codec's harder cases (real Pillow/libjpeg-built files exercising 4:2:0 chroma subsampling
+// and restart markers, cross-validated pixel-for-pixel against Pillow's own decode) are Rust unit
+// tests in `jpeg.rs` itself, same split every other format in this hub uses for its own harder
+// decoder cases.
+
+const JPEG_MAGIC: &[u8] = &[0xff, 0xd8, 0xff];
+const BMP_MAGIC: &[u8] = b"BM";
+const QOI_MAGIC: &[u8] = b"qoif";
+const PNG_MAGIC: &[u8] = &[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+const ICO_MAGIC: &[u8] = &[0x00, 0x00, 0x01, 0x00];
+const WEBP_MAGIC: &[u8] = b"RIFF";
+const GIF_MAGIC: &[u8] = b"GIF89a";
+
+#[test]
+fn image_bmp_to_jpeg_checkerboard() {
+    support::assert_convert_starts_with_magic(
+        "image/jpeg/checker_4x4.bmp",
+        Format::Bmp,
+        Format::Jpeg,
+        JPEG_MAGIC,
+        "JPEG",
+    );
+}
+
+#[test]
+fn image_qoi_to_jpeg_checkerboard() {
+    support::assert_convert_starts_with_magic(
+        "image/jpeg/checker_4x4.qoi",
+        Format::Qoi,
+        Format::Jpeg,
+        JPEG_MAGIC,
+        "JPEG",
+    );
+}
+
+#[test]
+fn image_png_to_jpeg_checkerboard() {
+    support::assert_convert_starts_with_magic(
+        "image/jpeg/checker_4x4.png",
+        Format::Png,
+        Format::Jpeg,
+        JPEG_MAGIC,
+        "JPEG",
+    );
+}
+
+#[test]
+fn image_ico_to_jpeg_checkerboard() {
+    support::assert_convert_starts_with_magic(
+        "image/jpeg/checker_4x4.ico",
+        Format::Ico,
+        Format::Jpeg,
+        JPEG_MAGIC,
+        "JPEG",
+    );
+}
+
+#[test]
+fn image_webp_to_jpeg_checkerboard() {
+    support::assert_convert_starts_with_magic(
+        "image/jpeg/checker_4x4.webp",
+        Format::Webp,
+        Format::Jpeg,
+        JPEG_MAGIC,
+        "JPEG",
+    );
+}
+
+#[test]
+fn image_gif_to_jpeg_checkerboard() {
+    support::assert_convert_starts_with_magic(
+        "image/jpeg/checker_4x4.gif",
+        Format::Gif,
+        Format::Jpeg,
+        JPEG_MAGIC,
+        "JPEG",
+    );
+}
+
+#[test]
+fn image_jpeg_to_bmp_checkerboard() {
+    support::assert_convert_starts_with_magic(
+        "image/bmp/checker_4x4.jpg",
+        Format::Jpeg,
+        Format::Bmp,
+        BMP_MAGIC,
+        "BMP",
+    );
+}
+
+#[test]
+fn image_jpeg_to_qoi_checkerboard() {
+    support::assert_convert_starts_with_magic(
+        "image/qoi/checker_4x4.jpg",
+        Format::Jpeg,
+        Format::Qoi,
+        QOI_MAGIC,
+        "QOI",
+    );
+}
+
+#[test]
+fn image_jpeg_to_png_checkerboard() {
+    support::assert_convert_starts_with_magic(
+        "image/png/checker_4x4.jpg",
+        Format::Jpeg,
+        Format::Png,
+        PNG_MAGIC,
+        "PNG",
+    );
+}
+
+#[test]
+fn image_jpeg_to_ico_checkerboard() {
+    support::assert_convert_starts_with_magic(
+        "image/ico/checker_4x4.jpg",
+        Format::Jpeg,
+        Format::Ico,
+        ICO_MAGIC,
+        "ICO",
+    );
+}
+
+#[test]
+fn image_jpeg_to_webp_checkerboard() {
+    support::assert_convert_starts_with_magic(
+        "image/webp/checker_4x4.jpg",
+        Format::Jpeg,
+        Format::Webp,
+        WEBP_MAGIC,
+        "WebP",
+    );
+}
+
+#[test]
+fn image_jpeg_to_gif_checkerboard() {
+    support::assert_convert_starts_with_magic(
+        "image/gif/checker_4x4.jpg",
+        Format::Jpeg,
+        Format::Gif,
+        GIF_MAGIC,
+        "GIF",
+    );
+}
+
+#[test]
+fn image_jpeg_bad_signature_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/bmp/bad_signature.jpg.bad",
+        Format::Jpeg,
+        Format::Bmp,
+    );
+}
+
+#[test]
+fn image_jpeg_truncated_is_a_typed_error() {
+    support::assert_malformed_produces_typed_error(
+        "image/qoi/truncated.jpg.bad",
+        Format::Jpeg,
+        Format::Qoi,
+    );
+}
+
+#[test]
+fn image_jpeg_progressive_scan_is_a_typed_error() {
+    // SOF0 (baseline) flipped to SOF2 (progressive DCT) — a real, legal JPEG variant this module
+    // deliberately doesn't implement (see module docs), not malformed input.
+    support::assert_malformed_produces_typed_error(
+        "image/png/progressive_marker.jpg.bad",
+        Format::Jpeg,
+        Format::Png,
+    );
+}
+
 // ─── text / plain_text ──────────────────────────────────────────────────────
 //
 // `IdentityConverter` (PlainText -> PlainText) is a passthrough, so every golden file here is
@@ -956,6 +1144,22 @@ fn fixtures_tree_has_no_stray_or_orphaned_files() {
         "image/bmp/bad_signature.gif.bad",
         "image/qoi/truncated.gif.bad",
         "image/png/no_image_before_trailer.gif.bad",
+        "image/jpeg/checker_4x4.bmp",
+        "image/jpeg/checker_4x4.qoi",
+        "image/jpeg/checker_4x4.png",
+        "image/jpeg/checker_4x4.ico",
+        "image/jpeg/checker_4x4.webp",
+        "image/jpeg/checker_4x4.gif",
+        "image/jpeg/checker_4x4.jpg",
+        "image/bmp/checker_4x4.jpg",
+        "image/qoi/checker_4x4.jpg",
+        "image/png/checker_4x4.jpg",
+        "image/ico/checker_4x4.jpg",
+        "image/webp/checker_4x4.jpg",
+        "image/gif/checker_4x4.jpg",
+        "image/bmp/bad_signature.jpg.bad",
+        "image/qoi/truncated.jpg.bad",
+        "image/png/progressive_marker.jpg.bad",
         "text/plain_text/hello.input.txt",
         "text/plain_text/hello.golden.txt",
         "text/plain_text/empty.input.txt",

@@ -12,9 +12,10 @@ use crate::progress::ProgressSink;
 /// sink) — callers that don't care about progress or limits can pass `&ConvertOptions::default()`
 /// everywhere, as shown throughout `docs/adding-a-format.md`.
 ///
-/// This struct is deliberately small today. Format-specific knobs (JPEG quality, CSV delimiter,
-/// …) are expected to land here as fields *when a real converter needs them* (see
-/// `docs/adding-a-format.md`), not added speculatively now for formats that don't exist yet.
+/// This struct is deliberately small today. Format-specific knobs (CSV delimiter, …) are expected
+/// to land here as fields *when a real converter needs them* (see `docs/adding-a-format.md`), not
+/// added speculatively now for formats that don't exist yet. [`ConvertOptions::jpeg_quality`] is
+/// the first such knob — added alongside `formats::image::jpeg` itself, not ahead of it.
 #[derive(Clone, Default)]
 pub struct ConvertOptions {
     /// If set, [`crate::convert`]/[`crate::convert_with`] reject input larger than this many
@@ -27,6 +28,12 @@ pub struct ConvertOptions {
     /// is equivalent to a sink that never cancels and discards every update — see
     /// [`ProgressSink`].
     pub progress: Option<Arc<dyn ProgressSink>>,
+
+    /// JPEG encode quality, `1..=100` (standard IJG scale — higher is better quality/larger
+    /// file). `None` uses `formats::image::jpeg`'s own default. Out-of-range values are clamped
+    /// rather than rejected, since this is a quality dial, not a correctness input. Ignored by
+    /// every other format's encoder.
+    pub jpeg_quality: Option<u8>,
 }
 
 impl ConvertOptions {
@@ -52,6 +59,7 @@ impl fmt::Debug for ConvertOptions {
         f.debug_struct("ConvertOptions")
             .field("max_input_bytes", &self.max_input_bytes)
             .field("progress", &self.progress.is_some())
+            .field("jpeg_quality", &self.jpeg_quality)
             .finish()
     }
 }

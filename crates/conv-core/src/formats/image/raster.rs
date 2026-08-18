@@ -17,6 +17,7 @@ const MAX_PIXELS: u64 = 4096 * 4096;
 /// A decoded raster image: RGBA8, row-major, top-to-bottom (row 0 is the top row), no padding
 /// between rows. Every format's `decode` normalizes into this shape; every format's `encode`
 /// starts from it.
+#[derive(Debug)]
 pub struct RawImage {
     pub width: u32,
     pub height: u32,

@@ -23,6 +23,7 @@ pub struct ConvertOptions {
     pub(crate) max_input_bytes: Option<u64>,
     pub(crate) on_progress: Option<Function>,
     pub(crate) cancel_flag: Option<Arc<AtomicBool>>,
+    pub(crate) jpeg_quality: Option<u8>,
 }
 
 #[wasm_bindgen]
@@ -63,5 +64,13 @@ impl ConvertOptions {
     #[wasm_bindgen(js_name = setCancelToken)]
     pub fn set_cancel_token(&mut self, token: &CancelToken) {
         self.cancel_flag = Some(token.flag());
+    }
+
+    /// JPEG encode quality, `1..=100` — see
+    /// [`conv_core::ConvertOptions::jpeg_quality`](conv_core::ConvertOptions). Ignored by every
+    /// other format's encoder; out-of-range values are clamped, not rejected.
+    #[wasm_bindgen(js_name = setJpegQuality)]
+    pub fn set_jpeg_quality(&mut self, quality: u8) {
+        self.jpeg_quality = Some(quality);
     }
 }

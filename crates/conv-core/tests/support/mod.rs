@@ -99,6 +99,28 @@ pub fn run_golden_case(input_rel: &str, golden_rel: &str, from: Format, to: Form
     );
 }
 
+/// Runs one golden-file case for a **lossy** encoder (JPEG, WebP — see
+/// [`run_golden_case`]'s own doc comment): converts the bytes at `input_rel` from `from` to `to`
+/// and asserts only that the output starts with `magic` (via [`assert_starts_with_magic`]), not
+/// that it's byte-identical to anything stored on disk. `input_rel` is relative to
+/// [`fixtures_dir`].
+pub fn assert_convert_starts_with_magic(
+    input_rel: &str,
+    from: Format,
+    to: Format,
+    magic: &[u8],
+    format_label: &str,
+) {
+    let input = read_fixture(input_rel);
+    let output =
+        conv_core::convert(&input, from, to, &ConvertOptions::default()).unwrap_or_else(|err| {
+            panic!(
+                "expected fixture {input_rel} to convert {from:?} -> {to:?} cleanly, got {err:?}"
+            )
+        });
+    assert_starts_with_magic(&output, magic, format_label);
+}
+
 /// What happened when a conversion was run under [`try_call_guarded`].
 #[derive(Debug)]
 pub enum GuardedOutcome {

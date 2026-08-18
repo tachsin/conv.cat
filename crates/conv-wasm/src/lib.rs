@@ -127,6 +127,7 @@ pub fn convert(
     let core_options = conv_core::ConvertOptions {
         max_input_bytes: Some(max_input_bytes),
         progress: Some(sink),
+        jpeg_quality: options.jpeg_quality,
     };
 
     conv_core::convert(input, from_format, to_format, &core_options)
